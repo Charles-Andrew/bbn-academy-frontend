@@ -1,0 +1,367 @@
+{
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "Digital Marketing Mastery",
+      "description": "Complete guide to digital marketing strategies, SEO, and social media marketing for modern businesses.",
+      "category": "digital",
+      "price": 49.99,
+      "image_url": "/images/products/digital-marketing.jpg",
+      "is_featured": true,
+      "stock_quantity": null,
+      "metadata": {
+        "format": "PDF",
+        "pages": 250,
+        "includes_videos": true,
+        "downloadable": true
+      },
+      "created_at": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "prod_002",
+      "name": "Leadership Excellence Workshop",
+      "description": "Interactive workshop covering essential leadership skills, team management, and strategic thinking.",
+      "category": "course",
+      "price": 299.99,
+      "image_url": "/images/products/leadership-workshop.jpg",
+      "is_featured": true,
+      "stock_quantity": 25,
+      "metadata": {
+        "duration": "2 days",
+        "format": "In-person",
+        "includes_materials": true,
+        "certificate": true
+      },
+      "created_at": "2024-01-20T14:30:00Z"
+    },
+    {
+      "id": "prod_003",
+      "name": "Productivity Planner Physical",
+      "description": "Premium physical planner designed to maximize productivity and goal achievement.",
+      "category": "physical",
+      "price": 39.99,
+      "image_url": "/images/products/planner.jpg",
+      "is_featured": false,
+      "stock_quantity": 150,
+      "metadata": {
+        "format": "Physical",
+        "pages": 200,
+        "binding": "Spiral",
+        "size": "A5"
+      },
+      "created_at": "2024-01-25T09:15:00Z"
+    },
+    {
+      "id": "prod_004",
+      "name": "Web Development Bootcamp",
+      "description": "Comprehensive course covering modern web development with React, Node.js, and cloud deployment.",
+      "category": "course",
+      "price": 199.99,
+      "image_url": "/images/products/web-dev-bootcamp.jpg",
+      "is_featured": true,
+      "stock_quantity": 50,
+      "metadata": {
+        "duration": "6 weeks",
+        "format": "Online",
+        "live_sessions": true,
+        "certificate": true
+      },
+      "created_at": "2024-02-01T11:00:00Z"
+    },
+    {
+      "id": "prod_005",
+      "name": "Social Media Templates Pack",
+      "description": "Professional social media templates for various platforms including Instagram, LinkedIn, and Twitter.",
+      "category": "digital",
+      "price": 29.99,
+      "image_url": "/images/products/social-templates.jpg",
+      "is_featured": false,
+      "stock_quantity": null,
+      "metadata": {
+        "format": "Digital files",
+        "templates_count": 100,
+        "editable": true,
+        "formats": ["PSD", "CANVA"]
+      },
+      "created_at": "2024-02-05T16:45:00Z"
+    }
+  ],
+  "blog_posts": [
+    {
+      "id": "blog_001",
+      "title": "10 Strategies for Effective Remote Team Management",
+      "slug": "remote-team-management-strategies",
+      "excerpt": "Discover proven strategies to lead and manage remote teams effectively in the digital age.",
+      "content": "Managing remote teams requires a different approach compared to traditional office environments. In this comprehensive guide, we explore ten proven strategies that successful managers use to maintain productivity, foster collaboration, and keep team members engaged while working remotely...",
+      "featured_image": "/images/blog/remote-management.jpg",
+      "author_id": "author_001",
+      "published_at": "2024-01-10T08:00:00Z",
+      "is_published": true,
+      "reading_time": 8,
+      "created_at": "2024-01-09T15:30:00Z",
+      "tags": ["management", "remote-work", "leadership", "productivity"]
+    },
+    {
+      "id": "blog_002",
+      "title": "The Future of Digital Marketing: Trends to Watch in 2024",
+      "slug": "digital-marketing-trends-2024",
+      "excerpt": "Explore the latest digital marketing trends that will shape the industry in 2024 and beyond.",
+      "content": "As we navigate through 2024, the digital marketing landscape continues to evolve at an unprecedented pace. From AI-powered personalization to the rise of immersive experiences, marketers need to stay ahead of the curve to remain competitive...",
+      "featured_image": "/images/blog/digital-trends.jpg",
+      "author_id": "author_001",
+      "published_at": "2024-01-15T09:00:00Z",
+      "is_published": true,
+      "reading_time": 12,
+      "created_at": "2024-01-14T11:20:00Z",
+      "tags": ["digital-marketing", "trends", "AI", "strategy"]
+    },
+    {
+      "id": "blog_003",
+      "title": "Building a Personal Brand That Stands Out",
+      "slug": "personal-branding-guide",
+      "excerpt": "Learn how to develop and maintain a compelling personal brand in today's competitive market.",
+      "content": "In a world where everyone has a platform, building a personal brand that truly stands out is both an art and a science. This guide walks you through the essential steps to discover your unique value proposition and communicate it effectively...",
+      "featured_image": "/images/blog/personal-branding.jpg",
+      "author_id": "author_001",
+      "published_at": "2024-01-20T10:30:00Z",
+      "is_published": true,
+      "reading_time": 10,
+      "created_at": "2024-01-19T14:45:00Z",
+      "tags": ["personal-branding", "marketing", "career", "social-media"]
+    },
+    {
+      "id": "blog_004",
+      "title": "Productivity Hacks for Busy Entrepreneurs",
+      "slug": "entrepreneur-productivity-hacks",
+      "excerpt": "Time-tested productivity techniques specifically designed for entrepreneurs juggling multiple responsibilities.",
+      "content": "Entrepreneurship comes with its unique set of challenges, and managing time effectively is often at the top of the list. In this article, we share practical productivity hacks that successful entrepreneurs use to maximize their output while maintaining work-life balance...",
+      "featured_image": "/images/blog/productivity-hacks.jpg",
+      "author_id": "author_001",
+      "published_at": "2024-01-25T07:45:00Z",
+      "is_published": true,
+      "reading_time": 7,
+      "created_at": "2024-01-24T16:30:00Z",
+      "tags": [
+        "productivity",
+        "entrepreneurship",
+        "time-management",
+        "business"
+      ]
+    }
+  ],
+  "blog_tags": [
+    {
+      "id": "tag_001",
+      "name": "management",
+      "slug": "management"
+    },
+    {
+      "id": "tag_002",
+      "name": "remote-work",
+      "slug": "remote-work"
+    },
+    {
+      "id": "tag_003",
+      "name": "leadership",
+      "slug": "leadership"
+    },
+    {
+      "id": "tag_004",
+      "name": "productivity",
+      "slug": "productivity"
+    },
+    {
+      "id": "tag_005",
+      "name": "digital-marketing",
+      "slug": "digital-marketing"
+    },
+    {
+      "id": "tag_006",
+      "name": "trends",
+      "slug": "trends"
+    },
+    {
+      "id": "tag_007",
+      "name": "AI",
+      "slug": "ai"
+    },
+    {
+      "id": "tag_008",
+      "name": "strategy",
+      "slug": "strategy"
+    },
+    {
+      "id": "tag_009",
+      "name": "personal-branding",
+      "slug": "personal-branding"
+    },
+    {
+      "id": "tag_010",
+      "name": "marketing",
+      "slug": "marketing"
+    },
+    {
+      "id": "tag_011",
+      "name": "career",
+      "slug": "career"
+    },
+    {
+      "id": "tag_012",
+      "name": "social-media",
+      "slug": "social-media"
+    },
+    {
+      "id": "tag_013",
+      "name": "entrepreneurship",
+      "slug": "entrepreneurship"
+    },
+    {
+      "id": "tag_014",
+      "name": "time-management",
+      "slug": "time-management"
+    },
+    {
+      "id": "tag_015",
+      "name": "business",
+      "slug": "business"
+    }
+  ],
+  "post_tags": [
+    {
+      "post_id": "blog_001",
+      "tag_id": "tag_001"
+    },
+    {
+      "post_id": "blog_001",
+      "tag_id": "tag_002"
+    },
+    {
+      "post_id": "blog_001",
+      "tag_id": "tag_003"
+    },
+    {
+      "post_id": "blog_001",
+      "tag_id": "tag_004"
+    },
+    {
+      "post_id": "blog_002",
+      "tag_id": "tag_005"
+    },
+    {
+      "post_id": "blog_002",
+      "tag_id": "tag_006"
+    },
+    {
+      "post_id": "blog_002",
+      "tag_id": "tag_007"
+    },
+    {
+      "post_id": "blog_002",
+      "tag_id": "tag_008"
+    },
+    {
+      "post_id": "blog_003",
+      "tag_id": "tag_009"
+    },
+    {
+      "post_id": "blog_003",
+      "tag_id": "tag_010"
+    },
+    {
+      "post_id": "blog_003",
+      "tag_id": "tag_011"
+    },
+    {
+      "post_id": "blog_003",
+      "tag_id": "tag_012"
+    },
+    {
+      "post_id": "blog_004",
+      "tag_id": "tag_004"
+    },
+    {
+      "post_id": "blog_004",
+      "tag_id": "tag_013"
+    },
+    {
+      "post_id": "blog_004",
+      "tag_id": "tag_014"
+    },
+    {
+      "post_id": "blog_004",
+      "tag_id": "tag_015"
+    }
+  ],
+  "engagements": [
+    {
+      "id": "eng_001",
+      "title": "Leadership Excellence Workshop",
+      "type": "workshop",
+      "description": "Intensive 2-day workshop focusing on developing essential leadership skills, emotional intelligence, and team management strategies.",
+      "date": "2024-03-15T09:00:00Z",
+      "duration": "2 days",
+      "price": 599.99,
+      "max_attendees": 20,
+      "location": "New York, NY",
+      "is_virtual": false,
+      "booking_url": "https://booking.example.com/leadership-workshop",
+      "created_at": "2024-01-10T10:00:00Z"
+    },
+    {
+      "id": "eng_002",
+      "title": "Digital Transformation Keynote",
+      "type": "speaking",
+      "description": "Keynote presentation on navigating digital transformation in traditional industries, featuring case studies and practical frameworks.",
+      "date": "2024-03-20T14:00:00Z",
+      "duration": "90 minutes",
+      "price": null,
+      "max_attendees": 500,
+      "location": "Tech Conference 2024, San Francisco, CA",
+      "is_virtual": false,
+      "booking_url": null,
+      "created_at": "2024-01-12T15:30:00Z"
+    },
+    {
+      "id": "eng_003",
+      "title": "Business Strategy Consultation",
+      "type": "consultation",
+      "description": "One-on-one strategic consultation for business owners looking to scale operations and improve market positioning.",
+      "date": null,
+      "duration": "2 hours",
+      "price": 250.0,
+      "max_attendees": 1,
+      "location": "Virtual",
+      "is_virtual": true,
+      "booking_url": "https://calendly.example.com/strategy-consultation",
+      "created_at": "2024-01-15T09:00:00Z"
+    },
+    {
+      "id": "eng_004",
+      "title": "Content Marketing Masterclass",
+      "type": "workshop",
+      "description": "Hands-on workshop covering content strategy, creation, distribution, and measurement for B2B and B2C businesses.",
+      "date": "2024-04-05T10:00:00Z",
+      "duration": "1 day",
+      "price": 349.99,
+      "max_attendees": 30,
+      "location": "Virtual",
+      "is_virtual": true,
+      "booking_url": "https://booking.example.com/content-marketing-masterclass",
+      "created_at": "2024-01-18T13:45:00Z"
+    },
+    {
+      "id": "eng_005",
+      "title": "Innovation Summit Panel Discussion",
+      "type": "speaking",
+      "description": "Panel discussion on fostering innovation in established organizations and overcoming resistance to change.",
+      "date": "2024-04-12T16:00:00Z",
+      "duration": "60 minutes",
+      "price": null,
+      "max_attendees": 300,
+      "location": "Innovation Summit 2024, Boston, MA",
+      "is_virtual": false,
+      "booking_url": null,
+      "created_at": "2024-01-20T11:30:00Z"
+    }
+  ]
+}
