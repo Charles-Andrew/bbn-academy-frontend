@@ -1,53 +1,53 @@
-"use client"
+"use client";
 
-import { motion, MotionProps } from 'framer-motion'
-import { ReactNode, Children } from 'react'
-import * as React from 'react'
+import { type MotionProps, motion } from "framer-motion";
+import * as React from "react";
+import { Children, type ReactNode } from "react";
 
 interface MotionFadeInProps extends MotionProps {
-  children: ReactNode
-  delay?: number
-  duration?: number
-  direction?: 'up' | 'down' | 'left' | 'right' | 'none'
-  distance?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  duration?: number;
+  direction?: "up" | "down" | "left" | "right" | "none";
+  distance?: number;
+  className?: string;
 }
 
 const getInitialPosition = (direction: string, distance: number) => {
   switch (direction) {
-    case 'up':
-      return { opacity: 0, y: distance }
-    case 'down':
-      return { opacity: 0, y: -distance }
-    case 'left':
-      return { opacity: 0, x: distance }
-    case 'right':
-      return { opacity: 0, x: -distance }
-    case 'none':
+    case "up":
+      return { opacity: 0, y: distance };
+    case "down":
+      return { opacity: 0, y: -distance };
+    case "left":
+      return { opacity: 0, x: distance };
+    case "right":
+      return { opacity: 0, x: -distance };
+    case "none":
     default:
-      return { opacity: 0 }
+      return { opacity: 0 };
   }
-}
+};
 
 const getAnimatePosition = (direction: string) => {
   switch (direction) {
-    case 'up':
-    case 'down':
-      return { opacity: 1, y: 0 }
-    case 'left':
-    case 'right':
-      return { opacity: 1, x: 0 }
-    case 'none':
+    case "up":
+    case "down":
+      return { opacity: 1, y: 0 };
+    case "left":
+    case "right":
+      return { opacity: 1, x: 0 };
+    case "none":
     default:
-      return { opacity: 1 }
+      return { opacity: 1 };
   }
-}
+};
 
 export function MotionFadeIn({
   children,
   delay = 0,
   duration = 0.6,
-  direction = 'up',
+  direction = "up",
   distance = 20,
   className,
   ...props
@@ -56,13 +56,13 @@ export function MotionFadeIn({
     <motion.div
       initial={getInitialPosition(direction, distance)}
       animate={getAnimatePosition(direction)}
-      transition={{ duration, ease: 'easeOut', delay }}
+      transition={{ duration, ease: "easeOut", delay }}
       className={className}
       {...props}
     >
       {children}
     </motion.div>
-  )
+  );
 }
 
 export function MotionStaggerChildren({
@@ -71,10 +71,10 @@ export function MotionStaggerChildren({
   childDelay = 0,
   className,
 }: {
-  children: ReactNode
-  staggerDelay?: number
-  childDelay?: number
-  className?: string
+  children: ReactNode;
+  staggerDelay?: number;
+  childDelay?: number;
+  className?: string;
 }) {
   return (
     <motion.div
@@ -100,9 +100,9 @@ export function MotionStaggerChildren({
               y: 0,
               transition: {
                 duration: 0.6,
-                ease: 'easeOut',
-                delay: childDelay + index * staggerDelay
-              }
+                ease: "easeOut",
+                delay: childDelay + index * staggerDelay,
+              },
             },
           }}
         >
@@ -110,5 +110,5 @@ export function MotionStaggerChildren({
         </motion.div>
       ))}
     </motion.div>
-  )
+  );
 }

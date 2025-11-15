@@ -1,5 +1,5 @@
-import { Skeleton } from "./skeleton"
-import { Card, CardContent, CardHeader } from "./card"
+import { Card, CardContent, CardHeader } from "./card";
+import { Skeleton } from "./skeleton";
 
 export function BookCardSkeleton() {
   return (
@@ -16,7 +16,7 @@ export function BookCardSkeleton() {
         <Skeleton className="h-4 w-2/3" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function ServiceCardSkeleton() {
@@ -49,7 +49,7 @@ export function ServiceCardSkeleton() {
         <Skeleton className="h-12 w-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function TestimonialCardSkeleton() {
@@ -70,7 +70,7 @@ export function TestimonialCardSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function ContactFormSkeleton() {
@@ -106,7 +106,7 @@ export function ContactFormSkeleton() {
         <Skeleton className="h-12 w-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function BlogCardSkeleton() {
@@ -128,7 +128,7 @@ export function BlogCardSkeleton() {
         <Skeleton className="h-4 w-5/6" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function FeaturedBooksSkeleton() {
@@ -146,7 +146,7 @@ export function FeaturedBooksSkeleton() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 export function HeroSectionSkeleton() {
@@ -161,5 +161,5 @@ export function HeroSectionSkeleton() {
         </div>
       </div>
     </section>
-  )
+  );
 }

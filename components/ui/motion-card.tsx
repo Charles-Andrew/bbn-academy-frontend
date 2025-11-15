@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { motion } from 'framer-motion'
-import { Card } from './card'
+import { motion } from "framer-motion";
+import { Card } from "./card";
 
 interface MotionCardProps {
-  delay?: number
-  duration?: number
-  initial?: any
-  animate?: any
-  whileHover?: any
-  whileTap?: any
-  children?: React.ReactNode
-  className?: string
-  [key: string]: any
+  delay?: number;
+  duration?: number;
+  initial?: any;
+  animate?: any;
+  whileHover?: any;
+  whileTap?: any;
+  children?: React.ReactNode;
+  className?: string;
+  [key: string]: any;
 }
 
 export function MotionCard({
@@ -38,5 +38,5 @@ export function MotionCard({
         {children}
       </Card>
     </motion.div>
-  )
+  );
 }
