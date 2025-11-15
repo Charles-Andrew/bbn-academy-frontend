@@ -1,21 +1,22 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, BookOpen } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navigation = [
-  { name: 'Books', href: '/books' },
-  { name: 'About', href: '/about' },
-  { name: 'Services', href: '/services' },
-  { name: 'Contact', href: '/contact' },
-]
+  { name: "About", href: "/about" },
+  { name: "Products", href: "/products" },
+  { name: "Blogs", href: "/blogs" },
+  { name: "Engagements", href: "/engagements" },
+  { name: "Contact", href: "/contact" },
+];
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,8 +24,11 @@ export function Header() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <BookOpen className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">Starbooks</span>
+            <img
+              src="/logo.webp"
+              alt="BBN Academy Logo"
+              className="h-12 w-auto max-w-[180px] object-contain"
+            />
           </Link>
         </div>
 
@@ -67,9 +71,9 @@ export function Header() {
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             className="md:hidden"
           >
             <div className="px-2 pt-2 pb-3 space-y-1 border-t bg-background">
@@ -95,5 +99,5 @@ export function Header() {
         )}
       </AnimatePresence>
     </header>
-  )
+  );
 }

@@ -1,23 +1,23 @@
-import Link from 'next/link'
-import { BookOpen, Mail, Phone, MapPin } from 'lucide-react'
+import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
 
 const navigation = {
   explore: [
-    { name: 'All Books', href: '/books' },
-    { name: 'Featured', href: '/books?featured=true' },
-    { name: 'New Releases', href: '/books?sort=newest' },
+    { name: "All Books", href: "/books" },
+    { name: "Featured", href: "/books?featured=true" },
+    { name: "New Releases", href: "/books?sort=newest" },
   ],
   about: [
-    { name: 'About Me', href: '/about' },
-    { name: 'Writing Journey', href: '/about#journey' },
-    { name: 'Services', href: '/services' },
+    { name: "About Me", href: "/about" },
+    { name: "Writing Journey", href: "/about#journey" },
+    { name: "Services", href: "/services" },
   ],
   connect: [
-    { name: 'Contact', href: '/contact' },
-    { name: 'Newsletter', href: '/contact#newsletter' },
-    { name: 'Social Media', href: '/about#social' },
+    { name: "Contact", href: "/contact" },
+    { name: "Newsletter", href: "/contact#newsletter" },
+    { name: "Social Media", href: "/about#social" },
   ],
-}
+};
 
 export function Footer() {
   return (
@@ -28,10 +28,14 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <BookOpen className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">Starbooks</span>
+              <span className="text-xl font-bold text-foreground">
+                BBN Academy
+              </span>
             </div>
             <p className="text-muted-foreground max-w-md">
-              Discover stories that inspire, challenge, and transform. Explore a collection of personally written books that blend imagination with insight.
+              Discover stories that inspire, challenge, and transform. Explore a
+              collection of personally written books that blend imagination with
+              insight.
             </p>
           </div>
 
@@ -77,7 +81,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Starbooks. All rights reserved.
+              © {new Date().getFullYear()} BBN Academy. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link
@@ -97,5 +101,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
