@@ -1,55 +1,70 @@
-import { MainLayout } from '@/components/layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { BookOpen, Users, Award, Mail, Twitter, Linkedin, Github, Calendar, MapPin, Quote } from 'lucide-react'
-import Link from 'next/link'
+import {
+  Award,
+  BookOpen,
+  Calendar,
+  Github,
+  Linkedin,
+  Mail,
+  MapPin,
+  Quote,
+  Twitter,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { MainLayout } from "@/components/layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const milestones = [
   {
-    year: '2020',
-    title: 'Writing Journey Begins',
-    description: 'Started writing my first novel, exploring the intersection of technology and human experience.',
+    year: "2020",
+    title: "Writing Journey Begins",
+    description:
+      "Started writing my first novel, exploring the intersection of technology and human experience.",
   },
   {
-    year: '2022',
-    title: 'First Publication',
-    description: 'Published "The Digital Renaissance," which became a bestseller in the technology writing category.',
+    year: "2022",
+    title: "First Publication",
+    description:
+      'Published "The Digital Renaissance," which became a bestseller in the technology writing category.',
   },
   {
-    year: '2023',
-    title: 'Diverse Portfolio',
-    description: 'Expanded into science fiction and philosophical writing, reaching over 5,000 readers worldwide.',
+    year: "2023",
+    title: "Diverse Portfolio",
+    description:
+      "Expanded into science fiction and philosophical writing, reaching over 5,000 readers worldwide.",
   },
   {
-    year: '2024',
-    title: 'Community Building',
-    description: 'Launched writing workshops and mentoring programs, helping aspiring authors find their voice.',
+    year: "2024",
+    title: "Community Building",
+    description:
+      "Launched writing workshops and mentoring programs, helping aspiring authors find their voice.",
   },
-]
+];
 
 const achievements = [
   {
     icon: BookOpen,
-    title: '6+ Books Published',
-    description: 'Across multiple genres and formats',
+    title: "6+ Books Published",
+    description: "Across multiple genres and formats",
   },
   {
     icon: Users,
-    title: '10K+ Readers',
-    description: 'Happy readers around the world',
+    title: "10K+ Readers",
+    description: "Happy readers around the world",
   },
   {
     icon: Award,
-    title: 'Literary Awards',
-    description: 'Multiple writing and innovation awards',
+    title: "Literary Awards",
+    description: "Multiple writing and innovation awards",
   },
   {
     icon: Mail,
-    title: 'Speaking Engagements',
-    description: 'Keynote speaker at tech conferences',
+    title: "Speaking Engagements",
+    description: "Keynote speaker at tech conferences",
   },
-]
+];
 
 export default function AboutPage() {
   return (
@@ -78,8 +93,8 @@ export default function AboutPage() {
               About the Author
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Exploring the boundaries between technology, philosophy, and human experience through
-              storytelling and thought-provoking narratives.
+              Exploring the boundaries between technology, philosophy, and human
+              experience through storytelling and thought-provoking narratives.
             </p>
           </div>
         </div>
@@ -93,15 +108,18 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-3xl font-bold mb-6">Sarah Chen</h2>
                 <p className="text-muted-foreground mb-4 leading-relaxed">
-                  I'm a writer, technologist, and philosopher who believes in the power of stories
-                  to bridge the gap between human experience and technological advancement. My work explores
-                  how emerging technologies are reshaping our understanding of consciousness, creativity,
-                  and what it means to be human in the digital age.
+                  I'm a writer, technologist, and philosopher who believes in
+                  the power of stories to bridge the gap between human
+                  experience and technological advancement. My work explores how
+                  emerging technologies are reshaping our understanding of
+                  consciousness, creativity, and what it means to be human in
+                  the digital age.
                 </p>
                 <p className="text-muted-foreground mb-6 leading-relaxed">
-                  With a background in computer science and literature, I bring a unique perspective to
-                  contemporary issues. My books have been translated into 12 languages and have won
-                  numerous awards for their innovative approach to complex topics.
+                  With a background in computer science and literature, I bring
+                  a unique perspective to contemporary issues. My books have
+                  been translated into 12 languages and have won numerous awards
+                  for their innovative approach to complex topics.
                 </p>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
                   <div className="flex items-center gap-1">
@@ -125,10 +143,11 @@ export default function AboutPage() {
               <div className="space-y-4">
                 <Quote className="h-8 w-8 text-primary" />
                 <blockquote className="text-lg italic text-muted-foreground">
-                  "Writing is not just about telling stories—it's about exploring the fundamental questions
-                  of what it means to be alive in an increasingly complex world. Through fiction and
-                  non-fiction, I seek to illuminate the human condition at the intersection of
-                  technology and consciousness."
+                  "Writing is not just about telling stories—it's about
+                  exploring the fundamental questions of what it means to be
+                  alive in an increasingly complex world. Through fiction and
+                  non-fiction, I seek to illuminate the human condition at the
+                  intersection of technology and consciousness."
                 </blockquote>
               </div>
             </div>
@@ -159,8 +178,12 @@ export default function AboutPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">{milestone.title}</h3>
-                    <p className="text-muted-foreground">{milestone.description}</p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {milestone.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {milestone.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -185,7 +208,9 @@ export default function AboutPage() {
                 <CardContent className="pt-6">
                   <achievement.icon className="h-12 w-12 text-primary mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">{achievement.title}</h3>
-                  <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {achievement.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -199,24 +224,37 @@ export default function AboutPage() {
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-6">Connect With Me</h2>
             <p className="text-muted-foreground mb-8">
-              Join the conversation and stay updated on new releases, events, and writing insights.
+              Join the conversation and stay updated on new releases, events,
+              and writing insights.
             </p>
 
             <div className="flex justify-center gap-4">
               <Button variant="outline" size="lg" asChild>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Twitter className="mr-2 h-4 w-4" />
                   Twitter
                 </a>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Linkedin className="mr-2 h-4 w-4" />
                   LinkedIn
                 </a>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Github className="mr-2 h-4 w-4" />
                   GitHub
                 </a>
@@ -226,5 +264,5 @@ export default function AboutPage() {
         </div>
       </section>
     </MainLayout>
-  )
+  );
 }

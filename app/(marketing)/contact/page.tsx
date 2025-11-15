@@ -1,23 +1,47 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { FileUpload } from '@/components/ui/file-upload'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { contactFormSchema, type ContactFormData } from '@/lib/validations'
-import { CONTACT_PURPOSES } from '@/types/contact'
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  Send,
+} from "lucide-react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FileUpload } from "@/components/ui/file-upload";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { type ContactFormData, contactFormSchema } from "@/lib/validations";
+import { CONTACT_PURPOSES } from "@/types/contact";
+import { MainLayout } from "@/components/layout";
 
 export default function ContactPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [attachments, setAttachments] = useState<File[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const {
     register,
@@ -26,59 +50,60 @@ export default function ContactPage() {
     setValue,
     clearErrors,
     reset,
-    watch
+    watch,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
+      fullName: "",
+      email: "",
       purpose: CONTACT_PURPOSES[0],
-      message: '',
-      attachments: []
-    }
-  })
+      message: "",
+      attachments: [],
+    },
+  });
 
-  const selectedPurpose = watch('purpose')
+  const selectedPurpose = watch("purpose");
 
   const handleFilesChange = (files: File[]) => {
-    setAttachments(files)
-    setValue('attachments', files)
+    setAttachments(files);
+    setValue("attachments", files);
     if (files.length > 0) {
-      clearErrors('attachments')
+      clearErrors("attachments");
     }
-  }
+  };
 
   const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true)
-    setSubmitStatus('idle')
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
 
     try {
       // For now, we'll just log the data since we're not connecting to backend yet
-      console.log('Contact form submission:', {
+      console.log("Contact form submission:", {
         ...data,
-        attachments: data.attachments?.map(file => ({
-          name: file.name,
-          size: file.size,
-          type: file.type
-        })) || []
-      })
+        attachments:
+          data.attachments?.map((file) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          })) || [],
+      });
 
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setSubmitStatus('success')
-      reset()
-      setAttachments([])
+      setSubmitStatus("success");
+      reset();
+      setAttachments([]);
     } catch (error) {
-      console.error('Contact form error:', error)
-      setSubmitStatus('error')
+      console.error("Contact form error:", error);
+      setSubmitStatus("error");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen">
+    <MainLayout>
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
         <div className="max-w-4xl mx-auto text-center">
@@ -86,8 +111,8 @@ export default function ContactPage() {
             Get in <span className="text-primary">Touch</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Have a question about my books, writing services, or want to collaborate?
-            I'd love to hear from you!
+            Have a question about my books, writing services, or want to
+            collaborate? I'd love to hear from you!
           </p>
         </div>
       </section>
@@ -102,13 +127,13 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5 text-primary" />
                   Email
                 </CardTitle>
-                <CardDescription>
-                  Send me a message anytime
-                </CardDescription>
+                <CardDescription>Send me a message anytime</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">hello@starbooks.com</p>
-                <p className="text-sm text-muted-foreground">consultations@starbooks.com</p>
+                <p className="text-sm">hello@bbnacademy.com</p>
+                <p className="text-sm text-muted-foreground">
+                  consultations@bbnacademy.com
+                </p>
               </CardContent>
             </Card>
 
@@ -118,13 +143,13 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 text-primary" />
                   Phone
                 </CardTitle>
-                <CardDescription>
-                  Available for consultations
-                </CardDescription>
+                <CardDescription>Available for consultations</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm">(555) 123-4567</p>
-                <p className="text-sm text-muted-foreground">Mon-Fri: 9am-6pm EST</p>
+                <p className="text-sm text-muted-foreground">
+                  Mon-Fri: 9am-6pm EST
+                </p>
               </CardContent>
             </Card>
 
@@ -134,13 +159,13 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-primary" />
                   Location
                 </CardTitle>
-                <CardDescription>
-                  Based in San Francisco
-                </CardDescription>
+                <CardDescription>Based in San Francisco</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm">San Francisco, CA</p>
-                <p className="text-sm text-muted-foreground">Available for virtual meetings worldwide</p>
+                <p className="text-sm text-muted-foreground">
+                  Available for virtual meetings worldwide
+                </p>
               </CardContent>
             </Card>
 
@@ -179,30 +204,35 @@ export default function ContactPage() {
               <CardHeader>
                 <CardTitle>Send Me a Message</CardTitle>
                 <CardDescription>
-                  Fill out the form below and I'll get back to you as soon as possible.
+                  Fill out the form below and I'll get back to you as soon as
+                  possible.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {submitStatus === 'success' && (
+                {submitStatus === "success" && (
                   <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                     <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
                       <CheckCircle className="w-5 h-5" />
-                      <span className="font-medium">Message sent successfully!</span>
+                      <span className="font-medium">
+                        Message sent successfully!
+                      </span>
                     </div>
                     <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      Thank you for reaching out. I'll get back to you within 24-48 hours.
+                      Thank you for reaching out. I'll get back to you within
+                      24-48 hours.
                     </p>
                   </div>
                 )}
 
-                {submitStatus === 'error' && (
+                {submitStatus === "error" && (
                   <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
                       <AlertCircle className="w-5 h-5" />
                       <span className="font-medium">Something went wrong</span>
                     </div>
                     <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                      Please try again or email me directly at hello@starbooks.com
+                      Please try again or email me directly at
+                      hello@bbnacademy.com
                     </p>
                   </div>
                 )}
@@ -214,11 +244,13 @@ export default function ContactPage() {
                       <Input
                         id="fullName"
                         placeholder="John Doe"
-                        {...register('fullName')}
-                        className={errors.fullName ? 'border-destructive' : ''}
+                        {...register("fullName")}
+                        className={errors.fullName ? "border-destructive" : ""}
                       />
                       {errors.fullName && (
-                        <p className="text-sm text-destructive">{errors.fullName.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.fullName.message}
+                        </p>
                       )}
                     </div>
 
@@ -228,11 +260,13 @@ export default function ContactPage() {
                         id="email"
                         type="email"
                         placeholder="john@example.com"
-                        {...register('email')}
-                        className={errors.email ? 'border-destructive' : ''}
+                        {...register("email")}
+                        className={errors.email ? "border-destructive" : ""}
                       />
                       {errors.email && (
-                        <p className="text-sm text-destructive">{errors.email.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.email.message}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -241,9 +275,13 @@ export default function ContactPage() {
                     <Label htmlFor="purpose">Purpose *</Label>
                     <Select
                       value={selectedPurpose}
-                      onValueChange={(value) => setValue('purpose', value as any)}
+                      onValueChange={(value) =>
+                        setValue("purpose", value as any)
+                      }
                     >
-                      <SelectTrigger className={errors.purpose ? 'border-destructive' : ''}>
+                      <SelectTrigger
+                        className={errors.purpose ? "border-destructive" : ""}
+                      >
                         <SelectValue placeholder="Select a purpose" />
                       </SelectTrigger>
                       <SelectContent>
@@ -255,7 +293,9 @@ export default function ContactPage() {
                       </SelectContent>
                     </Select>
                     {errors.purpose && (
-                      <p className="text-sm text-destructive">{errors.purpose.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.purpose.message}
+                      </p>
                     )}
                   </div>
 
@@ -265,11 +305,13 @@ export default function ContactPage() {
                       id="message"
                       rows={6}
                       placeholder="Tell me about your project, questions, or ideas..."
-                      {...register('message')}
-                      className={errors.message ? 'border-destructive' : ''}
+                      {...register("message")}
+                      className={errors.message ? "border-destructive" : ""}
                     />
                     {errors.message && (
-                      <p className="text-sm text-destructive">{errors.message.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.message.message}
+                      </p>
                     )}
                   </div>
 
@@ -282,7 +324,9 @@ export default function ContactPage() {
                       maxSize={5 * 1024 * 1024} // 5MB per file
                     />
                     {errors.attachments && (
-                      <p className="text-sm text-destructive">{errors.attachments.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.attachments.message}
+                      </p>
                     )}
                   </div>
 
@@ -323,16 +367,15 @@ export default function ContactPage() {
 
           <Card className="max-w-md mx-auto">
             <CardContent className="p-6">
-              <form className="space-y-4" onSubmit={(e) => {
-                e.preventDefault()
-                // Handle newsletter signup
-                console.log('Newsletter signup - frontend only for now')
-              }}>
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  required
-                />
+              <form
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // Handle newsletter signup
+                  console.log("Newsletter signup - frontend only for now");
+                }}
+              >
+                <Input type="email" placeholder="Enter your email" required />
                 <Button type="submit" className="w-full">
                   Subscribe to Newsletter
                 </Button>
@@ -344,6 +387,6 @@ export default function ContactPage() {
           </Card>
         </div>
       </section>
-    </div>
-  )
+      </MainLayout>
+  );
 }

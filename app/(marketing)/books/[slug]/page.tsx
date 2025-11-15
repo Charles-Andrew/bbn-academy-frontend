@@ -1,22 +1,30 @@
-import { notFound } from 'next/navigation'
-import { MainLayout } from '@/components/layout'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { getBookById } from '@/data/books'
-import { ArrowLeft, Calendar, BookOpen, Tag, Star, Share2, Heart } from 'lucide-react'
-import Link from 'next/link'
+import {
+  ArrowLeft,
+  BookOpen,
+  Calendar,
+  Heart,
+  Share2,
+  Star,
+  Tag,
+} from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { MainLayout } from "@/components/layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getBookById } from "@/data/books";
 
 interface BookPageProps {
   params: {
-    slug: string
-  }
+    slug: string;
+  };
 }
 
 export default function BookPage({ params }: BookPageProps) {
-  const book = getBookById(params.slug)
+  const book = getBookById(params.slug);
 
   if (!book) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -44,7 +52,11 @@ export default function BookPage({ params }: BookPageProps) {
               <div className="space-y-3">
                 {book.purchaseUrl && (
                   <Button size="lg" className="w-full" asChild>
-                    <Link href={book.purchaseUrl} target="_blank" rel="noopener noreferrer">
+                    <Link
+                      href={book.purchaseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Buy Now
                     </Link>
                   </Button>
@@ -81,16 +93,12 @@ export default function BookPage({ params }: BookPageProps) {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary">{book.genre}</Badge>
-                {book.featured && (
-                  <Badge variant="default">Featured</Badge>
-                )}
+                {book.featured && <Badge variant="default">Featured</Badge>}
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
                 {book.title}
               </h1>
-              <p className="text-lg text-muted-foreground">
-                by {book.author}
-              </p>
+              <p className="text-lg text-muted-foreground">by {book.author}</p>
             </div>
 
             {/* Book Info */}
@@ -98,17 +106,20 @@ export default function BookPage({ params }: BookPageProps) {
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm">
-                  Published {new Date(book.publishedAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+                  Published{" "}
+                  {new Date(book.publishedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
                   })}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <Star className="h-5 w-5 text-primary fill-primary" />
                 <span className="text-sm font-medium">4.8</span>
-                <span className="text-sm text-muted-foreground">(234 reviews)</span>
+                <span className="text-sm text-muted-foreground">
+                  (234 reviews)
+                </span>
               </div>
               {book.isbn && (
                 <div className="flex items-center gap-3">
@@ -150,7 +161,11 @@ export default function BookPage({ params }: BookPageProps) {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {book.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="flex items-center gap-1">
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
                       <Tag className="h-3 w-3" />
                       {tag}
                     </Badge>
@@ -172,14 +187,12 @@ export default function BookPage({ params }: BookPageProps) {
                 <p className="text-muted-foreground mb-4">
                   Based on 234 reviews
                 </p>
-                <Button variant="outline">
-                  Read All Reviews
-                </Button>
+                <Button variant="outline">Read All Reviews</Button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </MainLayout>
-  )
+  );
 }

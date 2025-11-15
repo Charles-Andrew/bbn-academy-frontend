@@ -1,84 +1,102 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { MainLayout } from '@/components/layout'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { sampleBooks } from '@/data/books'
-import type { BookFilterOptions } from '@/types/book'
-import { Search, Filter, BookOpen } from 'lucide-react'
+import { BookOpen, Filter, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { MainLayout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { sampleBooks } from "@/data/books";
+import type { BookFilterOptions } from "@/types/book";
 
 export default function BooksPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedGenre, setSelectedGenre] = useState<string>('')
-  const [sortBy, setSortBy] = useState<string>('newest')
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("newest");
 
   // Get unique genres
   const genres = useMemo(() => {
-    const uniqueGenres = [...new Set(sampleBooks.map(book => book.genre))]
-    return uniqueGenres
-  }, [])
+    const uniqueGenres = [...new Set(sampleBooks.map((book) => book.genre))];
+    return uniqueGenres;
+  }, []);
+
+  // Calculate constant counts
+  const totalBooksCount = sampleBooks.length;
+  const featuredBooksCount = sampleBooks.filter((book) => book.featured).length;
 
   // Filter and sort books
   const filteredBooks = useMemo(() => {
-    let filtered = [...sampleBooks]
+    let filtered = [...sampleBooks];
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(book =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
+      filtered = filtered.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.tags.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
+      );
     }
 
     // Apply genre filter
     if (selectedGenre) {
-      filtered = filtered.filter(book => book.genre === selectedGenre)
+      filtered = filtered.filter((book) => book.genre === selectedGenre);
     }
 
     // Apply sorting
     switch (sortBy) {
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        break
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-        break
-      case 'title':
-        filtered.sort((a, b) => a.title.localeCompare(b.title))
-        break
-      case 'price-low':
-        filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
-        break
-      case 'price-high':
-        filtered.sort((a, b) => (b.price || 0) - (a.price || 0))
-        break
+      case "newest":
+        filtered.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        break;
+      case "oldest":
+        filtered.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+        break;
+      case "title":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "price-low":
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price-high":
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
       default:
-        break
+        break;
     }
 
-    return filtered
-  }, [searchQuery, selectedGenre, sortBy])
+    return filtered;
+  }, [searchQuery, selectedGenre, sortBy]);
 
   const clearFilters = () => {
-    setSearchQuery('')
-    setSelectedGenre('')
-    setSortBy('newest')
-  }
+    setSearchQuery("");
+    setSelectedGenre("");
+    setSortBy("newest");
+  };
 
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
-            All Books
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight mb-4">All Books</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore the complete collection of books covering technology, philosophy, science fiction, and more.
+            Explore the complete collection of books covering technology,
+            philosophy, science fiction, and more.
           </p>
         </div>
 
@@ -128,7 +146,7 @@ export default function BooksPage() {
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredBooks.length} of {sampleBooks.length} books
+            Showing {filteredBooks.length} of {totalBooksCount} books ({featuredBooksCount} featured)
           </div>
         </div>
 
@@ -151,7 +169,9 @@ export default function BooksPage() {
                   )}
                 </div>
                 <div className="p-4 space-y-2">
-                  <div className="text-sm text-muted-foreground">{book.genre}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {book.genre}
+                  </div>
                   <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                     {book.title}
                   </h3>
@@ -186,12 +206,10 @@ export default function BooksPage() {
             <p className="text-muted-foreground mb-4">
               Try adjusting your search criteria or browse all books.
             </p>
-            <Button onClick={clearFilters}>
-              Clear Filters
-            </Button>
+            <Button onClick={clearFilters}>Clear Filters</Button>
           </div>
         )}
       </div>
     </MainLayout>
-  )
+  );
 }

@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Starbooks - Personal Book Showcase",
-  description: "Discover and purchase personally written books from a passionate author. Explore stories, insights, and services.",
+  title: "BBN Academy - Personal Book Showcase",
+  description:
+    "Discover and purchase personally written books from a passionate author. Explore stories, insights, and services.",
   keywords: ["books", "author", "writing", "storytelling", "personal library"],
 };
 
