@@ -2,12 +2,11 @@ import {
   Award,
   BookOpen,
   Calendar,
-  Github,
-  Linkedin,
+  Facebook,
+  Instagram,
   Mail,
   MapPin,
   Quote,
-  Twitter,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -243,32 +242,22 @@ export default function AboutPage() {
             <div className="flex justify-center gap-4">
               <Button variant="outline" size="lg" asChild>
                 <a
-                  href="https://twitter.com"
+                  href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Twitter className="mr-2 h-4 w-4" />
-                  Twitter
+                  <Facebook className="mr-2 h-4 w-4" />
+                  Facebook
                 </a>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <a
-                  href="https://linkedin.com"
+                  href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Linkedin className="mr-2 h-4 w-4" />
-                  LinkedIn
-                </a>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
+                  <Instagram className="mr-2 h-4 w-4" />
+                  Instagram
                 </a>
               </Button>
             </div>
