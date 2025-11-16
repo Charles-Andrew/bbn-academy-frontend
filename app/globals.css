@@ -89,6 +89,21 @@
   --ring: oklch(0.485 0.122 259.8); /* Lighter version of #163566 for dark mode */
 }
 
+/* Line clamp utility */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
