@@ -1,4 +1,5 @@
 import { ArrowLeft, Package, ShoppingCart, Star } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MainLayout } from "@/components/layout";
@@ -6,11 +7,43 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionFadeIn } from "@/components/ui/motion-fade-in";
-import { getProductById } from "@/data/products";
+import { getProductById, getProductSlugs } from "@/data/products";
 
 interface ProductPageProps {
   params: {
     slug: string;
+  };
+}
+
+// SSR: Generate static params for all products at build time
+export async function generateStaticParams() {
+  const products = getProductSlugs();
+  return products.map((slug) => ({
+    slug,
+  }));
+}
+
+// SSR: Generate metadata for each product
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const product = getProductById(params.slug);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+      description: "The requested product could not be found.",
+    };
+  }
+
+  return {
+    title: `${product.name} | BBN Academy`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      type: "website",
+    },
   };
 }
 

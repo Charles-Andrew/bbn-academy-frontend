@@ -7,7 +7,7 @@ export interface Product {
   image_url: string | null;
   is_featured: boolean;
   stock_quantity: number | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 

@@ -48,3 +48,5 @@ export const getProductCategories = () => {
   const categories = new Set(products.map((product) => product.category));
   return Array.from(categories) as Product["category"][];
 };
+
+export const getProductSlugs = () => products.map((product) => product.id);

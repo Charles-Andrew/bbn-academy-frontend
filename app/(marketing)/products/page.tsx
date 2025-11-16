@@ -1,8 +1,7 @@
-import { ArrowRight, Package, Star } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, Package } from "lucide-react";
 import { MainLayout } from "@/components/layout";
+import { FeaturedBooksSection } from "@/components/products/featured-books-section";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MotionFadeIn,
@@ -22,10 +21,10 @@ export default function ProductsPage() {
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
               Premium Products
-              <span className="text-primary"> for Growth</span>
+              <span className="text-primary"> & Books for Growth</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Discover carefully curated digital products, courses, and
+              Discover carefully curated digital products, courses, books, and
               resources designed to accelerate your personal and professional
               development.
             </p>
@@ -39,6 +38,9 @@ export default function ProductsPage() {
                   {category}
                 </Badge>
               ))}
+              <Badge variant="secondary" className="capitalize">
+                Books
+              </Badge>
             </div>
           </div>
         </div>
@@ -83,35 +85,15 @@ export default function ProductsPage() {
                     <p className="text-sm text-muted-foreground line-clamp-3">
                       {product.description}
                     </p>
-                    <div className="pt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="w-full"
-                      >
-                        <Link href={`/products/${product.id}`}>
-                          View Details
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </MotionStaggerChildren>
-
-          <div className="text-center mt-12">
-            <Button size="lg" asChild>
-              <Link href="/products/all">
-                View All Products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
         </div>
       </section>
+
+      <FeaturedBooksSection />
 
       {/* Categories Section */}
       <section className="py-16 md:py-24 bg-muted/20">
@@ -125,7 +107,7 @@ export default function ProductsPage() {
             </p>
           </MotionFadeIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {categories.map((category) => (
               <Card
                 key={category}
@@ -146,14 +128,23 @@ export default function ProductsPage() {
                     {category === "course" &&
                       "Live sessions, expert instruction"}
                   </p>
-                  <Button variant="outline" asChild>
-                    <Link href={`/products?category=${category}`}>
-                      Browse {category}
-                    </Link>
-                  </Button>
                 </CardContent>
               </Card>
             ))}
+            <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  Books
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Curated collection of transformative books across various
+                  genres and topics
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
