@@ -82,43 +82,46 @@ export function EngagementList({ className }: EngagementListProps) {
     totalPages: 0,
   });
 
-  const fetchEngagements = useCallback(async (resetPage = false) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: resetPage ? "1" : pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        ...(search && { search }),
-        ...(filters.type && { type: filters.type }),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.upcoming !== undefined && {
-          upcoming: filters.upcoming.toString(),
-        }),
-        ...(filters.virtual !== undefined && {
-          virtual: filters.virtual.toString(),
-        }),
-        ...(filters.featured !== undefined && {
-          featured: filters.featured.toString(),
-        }),
-        ...(filters.sortBy && { sortBy: filters.sortBy }),
-        ...(filters.sortOrder && { sortOrder: filters.sortOrder }),
-      });
+  const fetchEngagements = useCallback(
+    async (resetPage = false) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: resetPage ? "1" : pagination.page.toString(),
+          limit: pagination.limit.toString(),
+          ...(search && { search }),
+          ...(filters.type && { type: filters.type }),
+          ...(filters.status && { status: filters.status }),
+          ...(filters.upcoming !== undefined && {
+            upcoming: filters.upcoming.toString(),
+          }),
+          ...(filters.virtual !== undefined && {
+            virtual: filters.virtual.toString(),
+          }),
+          ...(filters.featured !== undefined && {
+            featured: filters.featured.toString(),
+          }),
+          ...(filters.sortBy && { sortBy: filters.sortBy }),
+          ...(filters.sortOrder && { sortOrder: filters.sortOrder }),
+        });
 
-      const response = await fetch(`/api/admin/engagements?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setEngagements(data.engagements);
-        setPagination(data.pagination);
-      } else {
+        const response = await fetch(`/api/admin/engagements?${params}`);
+        if (response.ok) {
+          const data = await response.json();
+          setEngagements(data.engagements);
+          setPagination(data.pagination);
+        } else {
+          toast.error("Failed to fetch engagements");
+        }
+      } catch (error) {
+        console.error("Error fetching engagements:", error);
         toast.error("Failed to fetch engagements");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching engagements:", error);
-      toast.error("Failed to fetch engagements");
-    } finally {
-      setLoading(false);
-    }
-  }, [search, filters, pagination.page, pagination.limit]);
+    },
+    [search, filters, pagination.page, pagination.limit],
+  );
 
   useEffect(() => {
     fetchEngagements();
@@ -245,7 +248,12 @@ export function EngagementList({ className }: EngagementListProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Type Filter */}
                 <div>
-                  <label htmlFor="engagement-type-filter" className="text-sm font-medium mb-2 block">Type</label>
+                  <label
+                    htmlFor="engagement-type-filter"
+                    className="text-sm font-medium mb-2 block"
+                  >
+                    Type
+                  </label>
                   <Select
                     value={filters.type || ""}
                     onValueChange={(value) =>
@@ -270,7 +278,10 @@ export function EngagementList({ className }: EngagementListProps) {
 
                 {/* Status Filter */}
                 <div>
-                  <label htmlFor="engagement-status-filter" className="text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="engagement-status-filter"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Status
                   </label>
                   <Select
@@ -297,7 +308,10 @@ export function EngagementList({ className }: EngagementListProps) {
 
                 {/* Virtual Filter */}
                 <div>
-                  <label htmlFor="engagement-format-filter" className="text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="engagement-format-filter"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Format
                   </label>
                   <Select
@@ -429,7 +443,10 @@ export function EngagementList({ className }: EngagementListProps) {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((skeletonNumber) => (
-            <Card key={`skeleton-engagement-${skeletonNumber}`} className="animate-pulse">
+            <Card
+              key={`skeleton-engagement-${skeletonNumber}`}
+              className="animate-pulse"
+            >
               <div className="h-48 bg-gray-200" />
               <CardHeader>
                 <div className="h-6 bg-gray-200 rounded mb-2" />
