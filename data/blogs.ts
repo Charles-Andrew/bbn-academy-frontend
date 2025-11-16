@@ -38,9 +38,9 @@ const updateCache = async () => {
     const tags = await getBlogTagsFromDb();
 
     // Transform posts to match expected format
-    const transformedPosts = postsResult.posts.map((post: any) => ({
+    const transformedPosts = postsResult.posts.map((post) => ({
       ...post,
-      tags: post.tags?.map((tag: any) => tag.name) || [],
+      tags: post.post_tags?.map((pt: { blog_tags: { name: string } }) => pt.blog_tags.name) || [],
     }));
 
     cachedPosts = transformedPosts;

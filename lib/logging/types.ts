@@ -1,11 +1,13 @@
 export type LogLevel = "user_action" | "error" | "success" | "system";
 export type LogFilterValue = LogLevel | "all";
 
+export type LogDetails = Record<string, unknown>;
+
 export interface LogEntry {
   id?: string;
   type: LogLevel;
   action: string;
-  details: Record<string, any>;
+  details: LogDetails;
   user_id?: string;
   user_email?: string;
   ip_address?: string;
@@ -28,7 +30,7 @@ export interface LogOptions {
 export interface CreateLogData {
   type: LogLevel;
   action: string;
-  details: Record<string, any>;
+  details: LogDetails;
   context?: LogContext;
 }
 

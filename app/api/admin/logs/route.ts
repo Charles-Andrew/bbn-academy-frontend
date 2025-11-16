@@ -1,15 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logging";
+import type { LogLevel } from "@/lib/logging/types";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const type = searchParams.get("type") as string | undefined;
-    const action = searchParams.get("action");
-    const userEmail = searchParams.get("user_email");
-    const dateFrom = searchParams.get("date_from");
-    const dateTo = searchParams.get("date_to");
+    const type = searchParams.get("type") as LogLevel | undefined;
+    const action = searchParams.get("action") || undefined;
+    const userEmail = searchParams.get("user_email") || undefined;
+    const dateFrom = searchParams.get("date_from") || undefined;
+    const dateTo = searchParams.get("date_to") || undefined;
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = (page - 1) * limit;

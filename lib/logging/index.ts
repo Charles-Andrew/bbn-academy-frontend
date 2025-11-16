@@ -1,5 +1,5 @@
 import { LogDatabase } from "./database";
-import type { LogContext, LogOptions } from "./types";
+import type { LogContext, LogDetails, LogFilters, LogOptions } from "./types";
 
 export class Logger {
   private db: LogDatabase;
@@ -42,7 +42,7 @@ export class Logger {
 
   async logUserAction(
     action: string,
-    details: Record<string, any>,
+    details: LogDetails,
     user?: { id: string; email: string },
     request?: Request,
     options: LogOptions = {},
@@ -68,7 +68,7 @@ export class Logger {
   async logError(
     action: string,
     error: Error | string,
-    details: Record<string, any> = {},
+    details: LogDetails = {},
     user?: { id: string; email: string },
     request?: Request,
     options: LogOptions = {},
@@ -113,7 +113,7 @@ export class Logger {
 
   async logSuccess(
     action: string,
-    details: Record<string, any>,
+    details: LogDetails,
     user?: { id: string; email: string },
     request?: Request,
     options: LogOptions = {},
@@ -138,7 +138,7 @@ export class Logger {
 
   async logSystem(
     action: string,
-    details: Record<string, any>,
+    details: LogDetails,
     request?: Request,
     options: LogOptions = {},
   ): Promise<string | null> {
@@ -265,7 +265,7 @@ export class Logger {
     return this.db.getLogStats();
   }
 
-  async getLogs(filters: any) {
+  async getLogs(filters: LogFilters) {
     return this.db.getLogs(filters);
   }
 

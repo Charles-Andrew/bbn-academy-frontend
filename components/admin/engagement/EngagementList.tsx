@@ -11,7 +11,7 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ export function EngagementList({ className }: EngagementListProps) {
     totalPages: 0,
   });
 
-  const fetchEngagements = async (resetPage = false) => {
+  const fetchEngagements = useCallback(async (resetPage = false) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -118,7 +118,7 @@ export function EngagementList({ className }: EngagementListProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, filters, pagination.page, pagination.limit]);
 
   useEffect(() => {
     fetchEngagements();
@@ -245,7 +245,7 @@ export function EngagementList({ className }: EngagementListProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Type Filter */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Type</label>
+                  <label htmlFor="engagement-type-filter" className="text-sm font-medium mb-2 block">Type</label>
                   <Select
                     value={filters.type || ""}
                     onValueChange={(value) =>
@@ -254,7 +254,7 @@ export function EngagementList({ className }: EngagementListProps) {
                       })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="engagement-type-filter">
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -270,7 +270,7 @@ export function EngagementList({ className }: EngagementListProps) {
 
                 {/* Status Filter */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label htmlFor="engagement-status-filter" className="text-sm font-medium mb-2 block">
                     Status
                   </label>
                   <Select
@@ -281,7 +281,7 @@ export function EngagementList({ className }: EngagementListProps) {
                       })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="engagement-status-filter">
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
@@ -297,7 +297,7 @@ export function EngagementList({ className }: EngagementListProps) {
 
                 {/* Virtual Filter */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label htmlFor="engagement-format-filter" className="text-sm font-medium mb-2 block">
                     Format
                   </label>
                   <Select
@@ -319,7 +319,7 @@ export function EngagementList({ className }: EngagementListProps) {
                       })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="engagement-format-filter">
                       <SelectValue placeholder="All formats" />
                     </SelectTrigger>
                     <SelectContent>

@@ -1,18 +1,20 @@
 // Client-side logging for use in client components
 // This version doesn't use server-side Supabase client
 
+import type { LogDetails } from "./types";
+
 export class ClientLogger {
   private logs: Array<{
     type: string;
     action: string;
-    details: Record<string, any>;
+    details: LogDetails;
     timestamp: string;
   }> = [];
 
   private async sendToServer(logData: {
     type: string;
     action: string;
-    details: Record<string, any>;
+    details: LogDetails;
   }) {
     try {
       await fetch("/api/admin/logs/client-log", {
@@ -31,7 +33,7 @@ export class ClientLogger {
   async logError(
     action: string,
     error: Error | string,
-    details: Record<string, any> = {},
+    details: LogDetails = {},
   ): Promise<void> {
     const logData = {
       type: "error",
@@ -58,7 +60,7 @@ export class ClientLogger {
 
   async logUserAction(
     action: string,
-    details: Record<string, any>,
+    details: LogDetails,
   ): Promise<void> {
     const logData = {
       type: "user_action",
@@ -83,7 +85,7 @@ export class ClientLogger {
 
   async logSuccess(
     action: string,
-    details: Record<string, any>,
+    details: LogDetails,
   ): Promise<void> {
     const logData = {
       type: "success",
@@ -109,7 +111,7 @@ export class ClientLogger {
   getLocalLogs(): Array<{
     type: string;
     action: string;
-    details: Record<string, any>;
+    details: LogDetails;
     timestamp: string;
   }> {
     return [...this.logs];

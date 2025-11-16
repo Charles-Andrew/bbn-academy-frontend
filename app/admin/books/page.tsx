@@ -128,7 +128,7 @@ export default function BooksAdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, bookFilters, setLoading, setError]);
+  }, [page, bookFilters, setLoading, setError, setBooks]);
 
   useEffect(() => {
     fetchBooks();

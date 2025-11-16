@@ -4,11 +4,21 @@ import engagementsData from "./data.json";
 export const engagements: Engagement[] =
   engagementsData.engagements as Engagement[];
 
+const hasFutureDate = (
+  engagement: Engagement,
+  now: Date,
+): engagement is Engagement & { date: string } =>
+  Boolean(engagement.date && new Date(engagement.date) > now);
+
 export const getUpcomingEngagements = () => {
   const now = new Date();
   return engagements
-    .filter((engagement) => engagement.date && new Date(engagement.date) > now)
-    .sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime());
+    .filter((engagement): engagement is Engagement & { date: string } =>
+      hasFutureDate(engagement, now),
+    )
+    .sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
 };
 
 export const getEngagementsByType = (type: string) =>
