@@ -19,6 +19,7 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Home },
@@ -32,7 +33,12 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -102,12 +108,12 @@ export function Sidebar() {
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="w-full justify-start gap-3 rounded-xl border border-transparent text-muted-foreground hover:border-border/70 hover:bg-muted/50 hover:text-foreground"
               >
-                {theme === "dark" ? (
+                {mounted && theme === "dark" ? (
                   <Sun className="h-5 w-5" />
                 ) : (
                   <Moon className="h-5 w-5" />
                 )}
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                {mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
               </Button>
             </li>
           </ul>
