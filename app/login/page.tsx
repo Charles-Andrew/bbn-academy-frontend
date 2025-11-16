@@ -1,7 +1,13 @@
 import { ShieldCheck, Sparkles } from "lucide-react";
-import { MainLayout } from "@/components/layout";
 import { LoginForm } from "@/components/auth/login-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MainLayout } from "@/components/layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
   return (
@@ -26,13 +32,17 @@ export default function LoginPage() {
             </div>
             <div className="grid gap-4 text-left sm:grid-cols-2">
               <div className="rounded-2xl border border-border/60 bg-card/70 p-4">
-                <p className="text-sm font-semibold text-primary">Real-time updates</p>
+                <p className="text-sm font-semibold text-primary">
+                  Real-time updates
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Publish new books, posts, and engagements instantly.
                 </p>
               </div>
               <div className="rounded-2xl border border-border/60 bg-card/70 p-4">
-                <p className="text-sm font-semibold text-primary">Secure workspace</p>
+                <p className="text-sm font-semibold text-primary">
+                  Secure workspace
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Protected admin-only area powered by Supabase Auth.
                 </p>

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,13 @@ export function Header() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <img
+            <Image
               src="/logo.webp"
               alt="BBN Academy Logo"
+              width={180}
+              height={48}
               className="h-12 w-auto max-w-[180px] object-contain"
+              priority
             />
           </Link>
         </div>

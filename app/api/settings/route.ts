@@ -21,12 +21,12 @@ export async function GET(request: NextRequest) {
         if (error.code === "PGRST116") {
           return NextResponse.json(
             { error: "Setting not found" },
-            { status: 404 }
+            { status: 404 },
           );
         }
         return NextResponse.json(
           { error: "Failed to fetch setting" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -44,12 +44,12 @@ export async function GET(request: NextRequest) {
       if (error) {
         return NextResponse.json(
           { error: "Failed to fetch settings" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
       // Convert to key-value object for easier usage
-      const settingsObject: Record<string, any> = {};
+      const settingsObject: Record<string, string | number | boolean> = {};
       data?.forEach((setting) => {
         settingsObject[setting.setting_key] = setting.setting_value;
       });
@@ -60,12 +60,11 @@ export async function GET(request: NextRequest) {
         raw: data, // Include raw data for detailed usage
       });
     }
-
   } catch (error) {
     console.error("Settings GET error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -79,7 +78,7 @@ export async function PUT(request: NextRequest) {
     if (!setting_key || setting_value === undefined) {
       return NextResponse.json(
         { error: "setting_key and setting_value are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +97,7 @@ export async function PUT(request: NextRequest) {
       console.error("Settings update error:", error);
       return NextResponse.json(
         { error: "Failed to update setting" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -107,12 +106,11 @@ export async function PUT(request: NextRequest) {
       message: "Setting updated successfully",
       data,
     });
-
   } catch (error) {
     console.error("Settings PUT error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -126,7 +124,7 @@ export async function PATCH(request: NextRequest) {
     if (!settings || typeof settings !== "object") {
       return NextResponse.json(
         { error: "settings object is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -135,23 +133,21 @@ export async function PATCH(request: NextRequest) {
 
     for (const [key, value] of Object.entries(settings)) {
       updatePromises.push(
-        supabase
-          .from("site_settings")
-          .upsert({
-            setting_key: key,
-            setting_value: value,
-          })
+        supabase.from("site_settings").upsert({
+          setting_key: key,
+          setting_value: value,
+        }),
       );
     }
 
     const results = await Promise.all(updatePromises);
-    const errors = results.filter(result => result.error);
+    const errors = results.filter((result) => result.error);
 
     if (errors.length > 0) {
       console.error("Batch update errors:", errors);
       return NextResponse.json(
         { error: "Failed to update some settings" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -160,12 +156,11 @@ export async function PATCH(request: NextRequest) {
       message: "Settings updated successfully",
       updatedCount: Object.keys(settings).length,
     });
-
   } catch (error) {
     console.error("Settings PATCH error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

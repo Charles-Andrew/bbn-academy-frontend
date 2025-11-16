@@ -7,16 +7,49 @@ import {
   Star,
   Tag,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MainLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getBookById } from "@/data/books";
+import { getBookById, getBookSlugs } from "@/data/books";
 
 interface BookPageProps {
   params: {
     slug: string;
+  };
+}
+
+// SSR: Generate static params for all books at build time
+export async function generateStaticParams() {
+  const books = getBookSlugs();
+  return books.map((slug) => ({
+    slug,
+  }));
+}
+
+// SSR: Generate metadata for each book
+export async function generateMetadata({
+  params,
+}: BookPageProps): Promise<Metadata> {
+  const book = getBookById(params.slug);
+
+  if (!book) {
+    return {
+      title: "Book Not Found",
+      description: "The requested book could not be found.",
+    };
+  }
+
+  return {
+    title: `${book.title} by ${book.author} | BBN Academy`,
+    description: book.description,
+    openGraph: {
+      title: `${book.title} by ${book.author}`,
+      description: book.description,
+      type: "book",
+    },
   };
 }
 

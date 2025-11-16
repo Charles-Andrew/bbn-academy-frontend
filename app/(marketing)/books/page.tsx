@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Filter, Search } from "lucide-react";
+import { BookOpen, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MainLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { sampleBooks } from "@/data/books";
-import type { BookFilterOptions } from "@/types/book";
 
 export default function BooksPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,7 +145,8 @@ export default function BooksPage() {
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredBooks.length} of {totalBooksCount} books ({featuredBooksCount} featured)
+            Showing {filteredBooks.length} of {totalBooksCount} books (
+            {featuredBooksCount} featured)
           </div>
         </div>
 

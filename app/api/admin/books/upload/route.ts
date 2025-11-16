@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -7,66 +7,67 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Only image files (JPEG, PNG, GIF, WebP) are allowed" },
-        { status: 400 }
+        { error: "Only JPEG, PNG, GIF, and WebP images are allowed" },
+        { status: 400 },
       );
     }
 
-    // Validate file size (5MB max)
+    // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: "File size cannot exceed 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const supabase = await createClient();
-    
+
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name}`;
-    const filePath = `book-covers/${filename}`;
+    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const fileName = `${timestamp}-${originalName}`;
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from("public")
-      .upload(filePath, file, {
+    const { error: uploadError } = await supabase.storage
+      .from("book-covers")
+      .upload(fileName, file, {
         contentType: file.type,
         cacheControl: "3600",
       });
 
-    if (error) {
-      console.error("Error uploading file:", error);
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
       return NextResponse.json(
-        { error: "Failed to upload file" },
-        { status: 500 }
+        {
+          error: "Failed to upload file to storage",
+          details: uploadError.message,
+        },
+        { status: 500 },
       );
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("public")
-      .getPublicUrl(filePath);
+    const { data: publicUrlData } = supabase.storage
+      .from("book-covers")
+      .getPublicUrl(fileName);
 
     return NextResponse.json({
-      url: urlData.publicUrl,
-      path: filePath,
+      url: publicUrlData.publicUrl,
+      fileName: fileName,
+      size: file.size,
     });
   } catch (error) {
-    console.error("Error in file upload:", error);
+    console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Internal server error during upload" },
+      { status: 500 },
     );
   }
 }

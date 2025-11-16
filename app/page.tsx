@@ -17,10 +17,27 @@ import {
 } from "@/components/ui/motion-fade-in";
 import { NewsletterSignup } from "@/components/ui/newsletter-signup";
 import {
-  getFeaturedPosts,
+  getFeaturedPostsSync as getFeaturedPosts,
   getFeaturedProducts,
   getUpcomingEngagements,
 } from "@/data";
+
+export const metadata = {
+  title: "BBN Academy - Knowledge That Transforms and Inspires",
+  description:
+    "Discover premium products, insightful articles, and engaging workshops designed to accelerate your personal and professional growth.",
+  openGraph: {
+    title: "BBN Academy - Knowledge That Transforms and Inspires",
+    description:
+      "Discover premium products, insightful articles, and engaging workshops designed to accelerate your personal and professional growth.",
+    type: "website",
+  },
+};
+
+// SSG: Generate static props at build time
+export async function generateStaticParams() {
+  return [];
+}
 
 export default function Home() {
   const featuredProducts = getFeaturedProducts();
@@ -161,8 +178,8 @@ export default function Home() {
                   "Beautifully written with insights that resonate on multiple levels. I found myself rereading passages to fully appreciate their depth.",
                 rating: 5,
               },
-            ].map((testimonial, index) => (
-              <Card key={index} className="relative overflow-hidden">
+            ].map((testimonial) => (
+              <Card key={testimonial.name} className="relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="absolute top-4 right-4 text-primary/10">
                     <Quote className="w-12 h-12" />
@@ -170,7 +187,7 @@ export default function Home() {
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
-                        key={i}
+                        key={`star-${testimonial.name}-${i}`}
                         className="w-4 h-4 fill-primary text-primary"
                       />
                     ))}

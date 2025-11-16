@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       console.error("Error fetching total books count:", totalError);
       return NextResponse.json(
         { error: "Failed to fetch total books count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       console.error("Error fetching featured books count:", featuredError);
       return NextResponse.json(
         { error: "Failed to fetch featured books count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     console.error("Error in books stats GET:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

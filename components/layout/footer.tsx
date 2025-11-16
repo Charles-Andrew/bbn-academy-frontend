@@ -1,4 +1,4 @@
-import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 
 const navigation = {

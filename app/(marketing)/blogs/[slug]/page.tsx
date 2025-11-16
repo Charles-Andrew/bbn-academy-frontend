@@ -6,6 +6,7 @@ import {
   Share2,
   User,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MainLayout } from "@/components/layout";
@@ -13,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionFadeIn } from "@/components/ui/motion-fade-in";
-import { getPostBySlug, getRelatedPosts } from "@/data/blogs";
+import { getBlogSlugs, getPostBySlug, getRelatedPosts } from "@/data/blogs";
 
 interface BlogPageProps {
   params: {
@@ -21,14 +22,48 @@ interface BlogPageProps {
   };
 }
 
-export default function BlogPage({ params }: BlogPageProps) {
-  const post = getPostBySlug(params.slug);
+// SSR: Generate static params for all blog posts at build time
+export async function generateStaticParams() {
+  const posts = await getBlogSlugs();
+  return posts.map((slug) => ({
+    slug,
+  }));
+}
+
+// SSR: Generate metadata for each blog post
+export async function generateMetadata({
+  params,
+}: BlogPageProps): Promise<Metadata> {
+  const post = await getPostBySlug(params.slug);
+
+  if (!post) {
+    return {
+      title: "Blog Post Not Found",
+      description: "The requested blog post could not be found.",
+    };
+  }
+
+  return {
+    title: `${post.title} | BBN Academy Blog`,
+    description: post.excerpt || post.content.slice(0, 160),
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || post.content.slice(0, 160),
+      type: "article",
+      publishedTime: post.published_at || post.created_at,
+      authors: ["Author Name"],
+    },
+  };
+}
+
+export default async function BlogPage({ params }: BlogPageProps) {
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = getRelatedPosts(post, 3);
+  const relatedPosts = await getRelatedPosts(post, 3);
 
   return (
     <MainLayout>
@@ -113,8 +148,11 @@ export default function BlogPage({ params }: BlogPageProps) {
           {/* Article Content */}
           <div className="prose prose-lg max-w-none mb-12">
             <div className="text-foreground leading-relaxed space-y-6">
-              {post.content.split("\n\n").map((paragraph, index) => (
-                <p key={index} className="text-base leading-relaxed">
+              {post.content.split("\n\n").map((paragraph) => (
+                <p
+                  key={paragraph.slice(0, 50)}
+                  className="text-base leading-relaxed"
+                >
                   {paragraph}
                 </p>
               ))}
@@ -143,6 +181,7 @@ export default function BlogPage({ params }: BlogPageProps) {
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag) => (
                     <Link
+                      key={tag}
                       href={`/blogs?tag=${tag}`}
                       className="hover:bg-accent"
                     >

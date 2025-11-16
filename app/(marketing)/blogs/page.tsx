@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, Clock, User } from "lucide-react";
+import { ArrowRight, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
 import { MainLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/motion-fade-in";
 import { getFeaturedPosts, getPublishedPosts } from "@/data/blogs";
 
-export default function BlogsPage() {
-  const featuredPosts = getFeaturedPosts();
-  const recentPosts = getPublishedPosts().slice(0, 6);
+export default async function BlogsPage() {
+  const featuredPosts = await getFeaturedPosts();
+  const recentPosts = (await getPublishedPosts()).slice(0, 6);
 
   return (
     <MainLayout>

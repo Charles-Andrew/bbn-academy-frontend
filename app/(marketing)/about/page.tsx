@@ -16,6 +16,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+export const metadata = {
+  title: "About BBN Academy | Our Journey and Mission",
+  description:
+    "Learn about BBN Academy's journey, writing philosophy, and commitment to exploring technology and human experience through storytelling.",
+  openGraph: {
+    title: "About BBN Academy | Our Journey and Mission",
+    description:
+      "Learn about BBN Academy's journey, writing philosophy, and commitment to exploring technology and human experience through storytelling.",
+    type: "website",
+  },
+};
+
 const milestones = [
   {
     year: "2020",
@@ -168,7 +180,7 @@ export default function AboutPage() {
 
             <div className="space-y-8">
               {milestones.map((milestone, index) => (
-                <div key={index} className="flex gap-6">
+                <div key={milestone.year} className="flex gap-6">
                   <div className="flex flex-col items-center">
                     <Badge variant="secondary" className="mb-2">
                       {milestone.year}
@@ -203,8 +215,8 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {achievements.map((achievement, index) => (
-              <Card key={index} className="text-center">
+            {achievements.map((achievement) => (
+              <Card key={achievement.title} className="text-center">
                 <CardContent className="pt-6">
                   <achievement.icon className="h-12 w-12 text-primary mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">{achievement.title}</h3>
