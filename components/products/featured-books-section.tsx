@@ -20,26 +20,20 @@ export function FeaturedBooksSection() {
   useEffect(() => {
     const loadBooks = async () => {
       try {
-        console.log("Client: Starting to fetch featured books...");
         setLoading(true);
         const response = await fetch("/api/books/featured");
-
-        console.log("Client: API Response status:", response.status);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Client: Full API Response:", data);
 
         if (data.success) {
-          console.log("Client: Books data received:", data.data);
           setBooks(data.data || []);
           setTotalBooks(data.totalCount || data.data?.length || 0);
           setError(null);
         } else {
-          console.error("Client: API returned error:", data.error);
           throw new Error(data.error || "Failed to load books");
         }
       } catch (err) {
@@ -53,10 +47,6 @@ export function FeaturedBooksSection() {
 
     loadBooks();
   }, []);
-
-  useEffect(() => {
-    console.log("Client: Books state updated:", books.length, books);
-  }, [books]);
 
   if (loading) {
     return (

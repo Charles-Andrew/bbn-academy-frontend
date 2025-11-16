@@ -41,10 +41,8 @@ const updateCache = async () => {
     const transformedPosts = postsResult.posts.map((post) => ({
       ...post,
       featured_media_id: post.featured_image, // Map from database field
-      tags:
-        post.post_tags?.map(
-          (pt: { blog_tags: { name: string } }) => pt.blog_tags.name,
-        ) || [],
+      tags: post.tags || [], // Tags are already transformed in blog-server.ts
+      media: post.media || [], // Media is already handled in blog-server.ts
     }));
 
     cachedPosts = transformedPosts;

@@ -1,45 +1,16 @@
 import type { BlogFiltersData, BlogPaginationData } from "@/lib/validations";
-import type { BlogMedia, BlogPost as IBlogPost } from "@/types/blog";
+import type { BlogPost as IBlogPost } from "@/types/blog";
 import { createClient } from "./supabase/server";
 import type { Database } from "./supabase/types";
 
 type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
 type BlogTag = Database["public"]["Tables"]["blog_tags"]["Row"];
-// Local type definition since blog_media table might not exist in database types yet
-type BlogMediaRow = {
-  id: string;
-  post_id: string;
-  file_name: string;
-  file_path: string;
-  file_type: "image" | "video";
-  mime_type: string;
-  file_size: number;
-  width?: number;
-  height?: number;
-  duration?: number;
-  alt_text?: string;
-  caption?: string;
-  is_featured: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-};
 
-// Type for blog post with joined tags and media from Supabase
-type BlogPostWithTagsAndMedia = BlogPost & {
+// Type for blog post with joined tags from Supabase
+type BlogPostWithTags = BlogPost & {
   post_tags?: Array<{
     blog_tags: BlogTag;
   }>;
-  blog_media?: BlogMediaRow[];
-};
-
-type PostWithTagsAndMediaFromDB = {
-  [K in keyof BlogPost]: BlogPost[K];
-} & {
-  post_tags?: Array<{
-    blog_tags: BlogTag;
-  }>;
-  blog_media?: BlogMediaRow[];
 };
 
 // Server-side only blog operations
@@ -66,22 +37,6 @@ export async function getBlogPosts(
           name,
           slug
         )
-      ),
-      blog_media(
-        id,
-        file_name,
-        file_path,
-        file_type,
-        mime_type,
-        file_size,
-        width,
-        height,
-        duration,
-        alt_text,
-        caption,
-        is_featured,
-        sort_order,
-        created_at
       )
     `,
       { count: "exact" },
@@ -152,38 +107,13 @@ export async function getBlogPosts(
     throw new Error("Failed to fetch blog posts");
   }
 
-  // Transform the data to include tags as a simple array of tag names and media with public URLs
-  const transformedPosts = posts?.map((post: PostWithTagsAndMediaFromDB) => {
-    // Transform media data to include public URLs
-    const media =
-      post.blog_media
-        ?.map(
-          (mediaItem) =>
-            ({
-              id: mediaItem.id,
-              post_id: mediaItem.post_id,
-              file_name: mediaItem.file_name,
-              file_path: mediaItem.file_path,
-              file_type: mediaItem.file_type as "image" | "video",
-              mime_type: mediaItem.mime_type,
-              file_size: mediaItem.file_size,
-              width: mediaItem.width,
-              height: mediaItem.height,
-              duration: mediaItem.duration,
-              alt_text: mediaItem.alt_text,
-              caption: mediaItem.caption,
-              is_featured: mediaItem.is_featured,
-              sort_order: mediaItem.sort_order,
-              created_at: mediaItem.created_at,
-            }) as BlogMedia,
-        )
-        .sort((a, b) => a.sort_order - b.sort_order) || [];
-
+  // Transform the data to include tags as a simple array of tag names
+  const transformedPosts = posts?.map((post: BlogPostWithTags) => {
     return {
       ...post,
       tags:
         post.post_tags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || [],
-      media,
+      media: [], // Empty media array until blog_media table is created
     };
   });
 
@@ -211,22 +141,6 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
           name,
           slug
         )
-      ),
-      blog_media(
-        id,
-        file_name,
-        file_path,
-        file_type,
-        mime_type,
-        file_size,
-        width,
-        height,
-        duration,
-        alt_text,
-        caption,
-        is_featured,
-        sort_order,
-        created_at
       )
     `)
     .eq("slug", slug)
@@ -237,42 +151,17 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
     throw new Error("Failed to fetch blog post");
   }
 
-  // Transform the data to include tags as a simple array and media with public URLs
-  const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
-
-  // Transform media data
-  const media =
-    blogPostWithTagsAndMedia.blog_media
-      ?.map(
-        (mediaItem) =>
-          ({
-            id: mediaItem.id,
-            post_id: mediaItem.post_id,
-            file_name: mediaItem.file_name,
-            file_path: mediaItem.file_path,
-            file_type: mediaItem.file_type as "image" | "video",
-            mime_type: mediaItem.mime_type,
-            file_size: mediaItem.file_size,
-            width: mediaItem.width,
-            height: mediaItem.height,
-            duration: mediaItem.duration,
-            alt_text: mediaItem.alt_text,
-            caption: mediaItem.caption,
-            is_featured: mediaItem.is_featured,
-            sort_order: mediaItem.sort_order,
-            created_at: mediaItem.created_at,
-          }) as BlogMedia,
-      )
-      .sort((a, b) => a.sort_order - b.sort_order) || [];
+  // Transform the data to include tags as a simple array
+  const blogPostWithTags = post as BlogPostWithTags;
 
   const transformedPost: IBlogPost = {
-    ...blogPostWithTagsAndMedia,
-    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
+    ...blogPostWithTags,
+    featured_media_id: blogPostWithTags.featured_image, // Map from database field
     tags:
-      blogPostWithTagsAndMedia.post_tags
+      blogPostWithTags.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media,
+    media: [], // Empty media array until blog_media table is created
   };
 
   return transformedPost;
@@ -291,22 +180,6 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
           name,
           slug
         )
-      ),
-      blog_media(
-        id,
-        file_name,
-        file_path,
-        file_type,
-        mime_type,
-        file_size,
-        width,
-        height,
-        duration,
-        alt_text,
-        caption,
-        is_featured,
-        sort_order,
-        created_at
       )
     `)
     .eq("id", id)
@@ -317,42 +190,17 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
     throw new Error("Failed to fetch blog post");
   }
 
-  // Transform the data to include tags as a simple array and media with public URLs
-  const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
-
-  // Transform media data
-  const media =
-    blogPostWithTagsAndMedia.blog_media
-      ?.map(
-        (mediaItem) =>
-          ({
-            id: mediaItem.id,
-            post_id: mediaItem.post_id,
-            file_name: mediaItem.file_name,
-            file_path: mediaItem.file_path,
-            file_type: mediaItem.file_type as "image" | "video",
-            mime_type: mediaItem.mime_type,
-            file_size: mediaItem.file_size,
-            width: mediaItem.width,
-            height: mediaItem.height,
-            duration: mediaItem.duration,
-            alt_text: mediaItem.alt_text,
-            caption: mediaItem.caption,
-            is_featured: mediaItem.is_featured,
-            sort_order: mediaItem.sort_order,
-            created_at: mediaItem.created_at,
-          }) as BlogMedia,
-      )
-      .sort((a, b) => a.sort_order - b.sort_order) || [];
+  // Transform the data to include tags as a simple array
+  const blogPostWithTags = post as BlogPostWithTags;
 
   const transformedPost: IBlogPost = {
-    ...blogPostWithTagsAndMedia,
-    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
+    ...blogPostWithTags,
+    featured_media_id: blogPostWithTags.featured_image, // Map from database field
     tags:
-      blogPostWithTagsAndMedia.post_tags
+      blogPostWithTags.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media,
+    media: [], // Empty media array until blog_media table is created
   };
 
   return transformedPost;

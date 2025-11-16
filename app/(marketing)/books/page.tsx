@@ -3,7 +3,7 @@
 import { BookOpen, Loader2, Search, X } from "lucide-react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { MainLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ const sortOptions = [
   { value: "created_at_asc", label: "Oldest First" },
 ];
 
-export default function BooksPage() {
+function BooksPageContent() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(
     searchParams?.get("search") || "",
@@ -374,5 +374,51 @@ export default function BooksPage() {
         )}
       </div>
     </MainLayout>
+  );
+}
+
+export default function BooksPage() {
+  return (
+    <Suspense
+      fallback={
+        <MainLayout>
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <BookOpen className="w-10 h-10 text-primary" />
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                  All Books
+                </h1>
+              </div>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Explore our complete collection of books covering technology,
+                philosophy, science fiction, and more. Find your next great
+                read.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }, () => (
+                <div
+                  key={`skeleton-${Math.random()}`}
+                  className="animate-pulse"
+                >
+                  <div className="bg-muted rounded-lg overflow-hidden">
+                    <div className="aspect-[3/4] bg-muted/50" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                      <div className="h-3 bg-muted rounded w-full" />
+                      <div className="h-3 bg-muted rounded w-2/3" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </MainLayout>
+      }
+    >
+      <BooksPageContent />
+    </Suspense>
   );
 }
