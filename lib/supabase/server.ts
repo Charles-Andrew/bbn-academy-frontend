@@ -5,7 +5,7 @@ export async function createClient() {
   // During build time (static generation), we can't access cookies
   // so we'll create a client with empty cookies
   const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
-  
+
   let cookieStore;
   try {
     cookieStore = await cookies();
@@ -30,26 +30,25 @@ export async function createClient() {
   }
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          try {
-            return cookieStore.getAll();
-          } catch {
-            return [];
-          }
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+    cookies: {
+      getAll() {
+        try {
+          return cookieStore.getAll();
+        } catch {
+          return [];
+        }
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
       },
     },
-  );
+  });
 }

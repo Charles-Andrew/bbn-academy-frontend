@@ -58,10 +58,7 @@ export class ClientLogger {
     console.error(`[${logData.type.toUpperCase()}] ${action}:`, error, details);
   }
 
-  async logUserAction(
-    action: string,
-    details: LogDetails,
-  ): Promise<void> {
+  async logUserAction(action: string, details: LogDetails): Promise<void> {
     const logData = {
       type: "user_action",
       action,
@@ -83,10 +80,7 @@ export class ClientLogger {
     }
   }
 
-  async logSuccess(
-    action: string,
-    details: LogDetails,
-  ): Promise<void> {
+  async logSuccess(action: string, details: LogDetails): Promise<void> {
     const logData = {
       type: "success",
       action,

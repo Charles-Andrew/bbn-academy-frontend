@@ -16,9 +16,7 @@ export const getUpcomingEngagements = () => {
     .filter((engagement): engagement is Engagement & { date: string } =>
       hasFutureDate(engagement, now),
     )
-    .sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    );
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
 export const getEngagementsByType = (type: string) =>

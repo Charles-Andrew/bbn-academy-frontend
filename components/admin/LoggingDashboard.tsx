@@ -272,7 +272,9 @@ export default function LoggingDashboard() {
                       {log.action}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 max-w-md">
-                      <div className="truncate">{String(log.details?.info || "-")}</div>
+                      <div className="truncate">
+                        {String(log.details?.info || "-")}
+                      </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {log.user_email || "-"}
