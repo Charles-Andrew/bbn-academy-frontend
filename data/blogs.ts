@@ -40,7 +40,10 @@ const updateCache = async () => {
     // Transform posts to match expected format
     const transformedPosts = postsResult.posts.map((post) => ({
       ...post,
-      tags: post.post_tags?.map((pt: { blog_tags: { name: string } }) => pt.blog_tags.name) || [],
+      tags:
+        post.post_tags?.map(
+          (pt: { blog_tags: { name: string } }) => pt.blog_tags.name,
+        ) || [],
     }));
 
     cachedPosts = transformedPosts;
@@ -93,7 +96,7 @@ export const getPostBySlug = async (
     // Transform to match expected format
     return {
       ...post,
-      tags: post.tags?.map((tag) => tag.name) || [],
+      tags: post.tags || [],
     };
   } catch (error) {
     console.error("Error getting post by slug:", error);

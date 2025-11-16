@@ -91,10 +91,12 @@ export async function getBlogPosts(
     throw new Error("Failed to fetch blog posts");
   }
 
-  // Transform the data to include tags as a simple array
+  // Transform the data to include tags as a simple array of tag names
   const transformedPosts = posts?.map((post: any) => ({
     ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+    tags:
+      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
+      [],
   }));
 
   return {
@@ -136,7 +138,9 @@ export async function getBlogPostBySlug(
   // Transform the data to include tags as a simple array
   const transformedPost = {
     ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+    tags:
+      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
+      [],
   };
 
   return transformedPost as any;
@@ -170,7 +174,9 @@ export async function getBlogPostById(
   // Transform the data to include tags as a simple array
   const transformedPost = {
     ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+    tags:
+      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
+      [],
   };
 
   return transformedPost as any;

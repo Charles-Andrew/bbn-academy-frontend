@@ -1,5 +1,6 @@
 import type { BlogFiltersData, BlogPaginationData } from "@/lib/validations";
 import type { Database } from "./types";
+import type { BlogPost as IBlogPost } from "@/types/blog";
 
 // Helper function to get the right client based on context
 async function getSupabaseClient() {
@@ -19,7 +20,21 @@ type BlogPostUpdate = Database["public"]["Tables"]["blog_posts"]["Update"];
 type BlogTag = Database["public"]["Tables"]["blog_tags"]["Row"];
 type BlogTagInsert = Database["public"]["Tables"]["blog_tags"]["Insert"];
 type BlogTagUpdate = Database["public"]["Tables"]["blog_tags"]["Update"];
-type PostTag = Database["public"]["Tables"]["post_tags"]["Row"];
+
+// Type for blog post with joined tags from Supabase
+type BlogPostWithTags = BlogPost & {
+  post_tags?: Array<{
+    blog_tags: BlogTag;
+  }>;
+};
+
+type PostWithTagsFromDB = {
+  [K in keyof BlogPost]: BlogPost[K];
+} & {
+  post_tags?: Array<{
+    blog_tags: BlogTag;
+  }>;
+};
 
 // Blog Post CRUD Operations
 export async function getBlogPosts(
@@ -85,7 +100,24 @@ export async function getBlogPosts(
   // Apply sorting
   const sortColumn = filters.sortBy || "created_at";
   const sortOrder = filters.sortOrder || "desc";
-  query = query.order(sortColumn as any, { ascending: sortOrder === "asc" });
+  const validSortColumns = [
+    "created_at",
+    "updated_at",
+    "published_at",
+    "title",
+    "slug",
+    "id",
+    "excerpt",
+    "content",
+    "featured_image",
+    "author_id",
+    "is_published",
+    "reading_time",
+  ] as const;
+  const column = validSortColumns.includes(sortColumn as keyof BlogPost)
+    ? sortColumn
+    : "created_at";
+  query = query.order(column, { ascending: sortOrder === "asc" });
 
   const {
     data: posts,
@@ -98,10 +130,10 @@ export async function getBlogPosts(
     throw new Error("Failed to fetch blog posts");
   }
 
-  // Transform the data to include tags as a simple array
-  const transformedPosts = posts?.map((post) => ({
+  // Transform the data to include tags as a simple array of tag names
+  const transformedPosts = posts?.map((post: PostWithTagsFromDB) => ({
     ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+    tags: post.post_tags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || [],
   }));
 
   return {
@@ -115,9 +147,7 @@ export async function getBlogPosts(
   };
 }
 
-export async function getBlogPostBySlug(
-  slug: string,
-): Promise<BlogPost & { tags: BlogTag[] }> {
+export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
   const supabase = await getSupabaseClient();
 
   const { data: post, error } = await supabase
@@ -141,17 +171,19 @@ export async function getBlogPostBySlug(
   }
 
   // Transform the data to include tags as a simple array
-  const transformedPost = {
-    ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+  const blogPostWithTags = post as BlogPostWithTags;
+  const transformedPost: IBlogPost = {
+    ...blogPostWithTags,
+    tags:
+      blogPostWithTags.post_tags
+        ?.map((pt) => pt.blog_tags?.name)
+        .filter(Boolean) || [],
   };
 
-  return transformedPost as any;
+  return transformedPost;
 }
 
-export async function getBlogPostById(
-  id: string,
-): Promise<BlogPost & { tags: BlogTag[] }> {
+export async function getBlogPostById(id: string): Promise<IBlogPost> {
   const supabase = await getSupabaseClient();
 
   const { data: post, error } = await supabase
@@ -175,12 +207,16 @@ export async function getBlogPostById(
   }
 
   // Transform the data to include tags as a simple array
-  const transformedPost = {
-    ...post,
-    tags: post.post_tags?.map((pt: any) => pt.blog_tags) || [],
+  const blogPostWithTags = post as BlogPostWithTags;
+  const transformedPost: IBlogPost = {
+    ...blogPostWithTags,
+    tags:
+      blogPostWithTags.post_tags
+        ?.map((pt) => pt.blog_tags?.name)
+        .filter(Boolean) || [],
   };
 
-  return transformedPost as any;
+  return transformedPost;
 }
 
 export async function createBlogPost(
