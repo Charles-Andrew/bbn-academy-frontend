@@ -88,15 +88,23 @@ export async function PUT(
     // Get current post to check if slug changed
     const currentPost = await getBlogPostById(postId);
 
-    // Handle slug uniqueness
+    // Handle slug uniqueness with better user input respect
     let slug = validatedData.slug;
-    if (slug && slug !== currentPost.slug) {
-      slug = await generateUniqueSlug(slug, postId);
-    } else if (!slug) {
+    if (!slug || slug.trim() === "") {
       // Generate slug from title if not provided
       slug = await generateUniqueSlug(validatedData.title, postId);
+    } else if (slug !== currentPost.slug) {
+      // User provided a new slug - clean it up and ensure uniqueness
+      slug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      // Ensure uniqueness (excluding current post)
+      slug = await generateUniqueSlug(slug, postId);
     } else {
-      slug = currentPost.slug; // Keep existing slug
+      // Keep existing slug unchanged
+      slug = currentPost.slug;
     }
 
     // Calculate reading time if content changed
@@ -132,7 +140,7 @@ export async function PUT(
       slug,
       excerpt: validatedData.excerpt,
       content: validatedData.content,
-      featured_image: validatedData.featuredImage || null,
+      featured_media_id: validatedData.featuredMediaId || null, // Changed from featured_image
       published_at: publishedAt,
       is_published: validatedData.isPublished,
       reading_time: readingTime,

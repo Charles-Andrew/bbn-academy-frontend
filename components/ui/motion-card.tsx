@@ -1,8 +1,8 @@
 "use client";
 
+import type { TargetAndTransition, VariantLabels } from "framer-motion";
 import { motion } from "framer-motion";
 import { Card } from "./card";
-import type { TargetAndTransition, VariantLabels } from "framer-motion";
 
 interface MotionCardProps {
   delay?: number;

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logging";
+import { processContactSubmission } from "@/lib/supabase/admin";
 import { contactFormSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
@@ -35,24 +36,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Replace with actual Supabase integration when ready
-    // For now, just log the data and return success
-    console.log("Contact form submission received:", {
-      ...validatedData,
-      attachments: validatedData.attachments?.map((file) => ({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      })),
-    });
+    // Process contact form submission with Supabase integration
+    const submissionResult = await processContactSubmission(
+      {
+        full_name: validatedData.fullName,
+        email: validatedData.email,
+        purpose: validatedData.purpose,
+        message: validatedData.message,
+      },
+      validatedData.attachments || [],
+    );
 
-    // TODO: Add email notification here
-    // TODO: Add Supabase database insertion here
-    // TODO: Add file upload to Supabase Storage here
+    if (!submissionResult.success) {
+      throw new Error(
+        `Failed to save contact submission: ${submissionResult.error}`,
+      );
+    }
+
+    console.log("Contact form submission saved successfully:", {
+      messageId: submissionResult.messageId,
+      email: validatedData.email,
+      purpose: validatedData.purpose,
+      hasAttachments: (validatedData.attachments?.length || 0) > 0,
+      attachmentCount: validatedData.attachments?.length || 0,
+    });
 
     await logger.logSuccess(
       "contact_form_processed",
       {
+        message_id: submissionResult.messageId,
         email: validatedData.email,
         purpose: validatedData.purpose,
         has_attachments:

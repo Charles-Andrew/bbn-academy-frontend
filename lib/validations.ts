@@ -126,12 +126,12 @@ export const blogPostSchema = z.object({
     .max(200, "Blog title cannot exceed 200 characters"),
   slug: z
     .string()
-    .min(1, "Slug is required")
     .max(200, "Slug cannot exceed 200 characters")
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must contain only lowercase letters, numbers, and hyphens",
-    ),
+    )
+    .optional(),
   excerpt: z
     .string()
     .max(500, "Excerpt cannot exceed 500 characters")
@@ -140,11 +140,11 @@ export const blogPostSchema = z.object({
     .string()
     .min(10, "Blog content must be at least 10 characters")
     .max(50000, "Content cannot exceed 50,000 characters"),
-  featuredImage: z
+  featuredMediaId: z
     .string()
-    .url("Featured image must be a valid URL")
-    .or(z.literal(""))
-    .optional(),
+    .uuid("Invalid featured media ID")
+    .nullable()
+    .optional(), // Changed from featuredImage
   authorId: z.string().uuid("Invalid author ID").optional(),
   isPublished: z.boolean().default(false),
   publishedAt: z.string().datetime("Invalid publication date").optional(),
@@ -160,11 +160,11 @@ export const blogPostSchema = z.object({
   featured: z.boolean().default(false),
   seoTitle: z
     .string()
-    .max(60, "SEO title cannot exceed 60 characters")
+    .max(200, "SEO title cannot exceed 200 characters")
     .optional(),
   seoDescription: z
     .string()
-    .max(160, "SEO description cannot exceed 160 characters")
+    .max(300, "SEO description cannot exceed 300 characters")
     .optional(),
 });
 
@@ -230,6 +230,70 @@ export const blogImageUploadSchema = z.object({
       return allowedTypes.includes(file.type);
     }, "Only JPEG, PNG, GIF, and WebP images are allowed"),
   alt: z.string().max(200, "Alt text cannot exceed 200 characters").optional(),
+});
+
+// Enhanced blog media upload validation schema (supports images and videos)
+export const blogMediaUploadSchema = z.object({
+  files: z
+    .array(z.instanceof(File))
+    .min(1, "At least one file must be provided")
+    .max(10, "Cannot upload more than 10 files at once")
+    .refine(
+      (files) => files.every((file) => file.size <= 50 * 1024 * 1024), // 50MB per file
+      "Each file cannot exceed 50MB",
+    )
+    .refine((files) => {
+      const allowedTypes = [
+        // Image formats
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+        // Video formats
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/quicktime",
+      ];
+      return files.every((file) => allowedTypes.includes(file.type));
+    }, "Only images (JPEG, PNG, GIF, WebP, SVG) and videos (MP4, WebM, OGG, MOV) are allowed"),
+  postId: z.string().uuid("Invalid blog post ID"),
+  altTexts: z
+    .array(z.string().max(200, "Alt text cannot exceed 200 characters"))
+    .optional(),
+  captions: z
+    .array(z.string().max(500, "Caption cannot exceed 500 characters"))
+    .optional(),
+});
+
+// Single media file validation for metadata updates
+export const blogMediaMetadataSchema = z.object({
+  id: z.string().uuid("Invalid media ID"),
+  alt_text: z
+    .string()
+    .max(200, "Alt text cannot exceed 200 characters")
+    .optional(),
+  caption: z
+    .string()
+    .max(500, "Caption cannot exceed 500 characters")
+    .optional(),
+  is_featured: z.boolean().optional(),
+  sort_order: z.number().int().min(0).optional(),
+});
+
+// Media reordering schema
+export const blogMediaReorderSchema = z.object({
+  postId: z.string().uuid("Invalid blog post ID"),
+  mediaIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one media ID is required"),
+});
+
+// Media deletion schema
+export const blogMediaDeleteSchema = z.object({
+  id: z.string().uuid("Invalid media ID"),
+  postId: z.string().uuid("Invalid blog post ID"),
 });
 
 // Blog pagination with filters schema
@@ -415,6 +479,10 @@ export type BlogPostFormData = z.infer<typeof blogPostSchema>;
 export type BlogTagFormData = z.infer<typeof blogTagSchema>;
 export type BlogFiltersData = z.infer<typeof blogFiltersSchema>;
 export type BlogImageUploadData = z.infer<typeof blogImageUploadSchema>;
+export type BlogMediaUploadData = z.infer<typeof blogMediaUploadSchema>;
+export type BlogMediaMetadataData = z.infer<typeof blogMediaMetadataSchema>;
+export type BlogMediaReorderData = z.infer<typeof blogMediaReorderSchema>;
+export type BlogMediaDeleteData = z.infer<typeof blogMediaDeleteSchema>;
 export type BlogPaginationData = z.infer<typeof blogPaginationSchema>;
 export type BlogBulkActionData = z.infer<typeof blogBulkActionSchema>;
 export type EngagementFormData = z.infer<typeof engagementSchema>;

@@ -63,13 +63,22 @@ export default function Home() {
               growth.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                asChild
+              >
                 <Link href="/products">
                   Explore Products
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-secondary text-secondary hover:bg-secondary hover:text-foreground transition-all duration-300" asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-secondary text-secondary hover:bg-secondary hover:text-foreground transition-all duration-300"
+                asChild
+              >
                 <Link href="/about">Learn More</Link>
               </Button>
             </div>
@@ -137,7 +146,12 @@ export default function Home() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+              asChild
+            >
               <Link href="/products">
                 View All Products
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -396,13 +410,22 @@ export default function Home() {
               support your journey of continuous improvement.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+              <Button
+                size="lg"
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                asChild
+              >
                 <Link href="/products">
                   Browse Products
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                asChild
+              >
                 <Link href="/engagements">View Events</Link>
               </Button>
             </div>

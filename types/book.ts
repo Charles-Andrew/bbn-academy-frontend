@@ -2,18 +2,18 @@ export interface Book {
   id: string;
   title: string;
   description: string;
-  coverImage: string;
+  cover_image: string | null;
   author: string;
   genre: string;
-  publishedAt: string;
-  isbn?: string;
-  price?: number;
-  purchaseUrl?: string;
-  tags: string[];
-  featured?: boolean;
-  content?: string; // For book preview/sample
-  createdAt: string;
-  updatedAt: string;
+  published_at: string | null;
+  isbn?: string | null;
+  price?: number | null;
+  purchase_url?: string | null;
+  tags: string[] | null;
+  featured?: boolean | null;
+  content?: string | null; // For book preview/sample
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BookCardProps {

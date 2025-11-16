@@ -165,14 +165,14 @@ export default function BooksAdminPage() {
         title: book.title || "",
         author: book.author || "",
         description: book.description || "",
-        coverImage: book.coverImage || "",
+        coverImage: book.cover_image || "",
         genre: book.genre || "",
-        publishedAt: book.publishedAt
-          ? new Date(book.publishedAt).toISOString().split("T")[0]
+        publishedAt: book.published_at
+          ? new Date(book.published_at).toISOString().split("T")[0]
           : "",
         isbn: book.isbn || "",
         price: book.price || null,
-        purchaseUrl: book.purchaseUrl || "",
+        purchaseUrl: book.purchase_url || "",
         tags: book.tags || [],
         featured: newFeaturedStatus,
         content: book.content || "",
@@ -525,10 +525,10 @@ export default function BooksAdminPage() {
 
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  {viewingBook.coverImage && (
+                  {viewingBook.cover_image && (
                     <div className="relative w-32 h-48 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                       <Image
-                        src={viewingBook.coverImage}
+                        src={viewingBook.cover_image}
                         alt={viewingBook.title}
                         fill
                         className="object-cover"
@@ -548,7 +548,11 @@ export default function BooksAdminPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="font-semibold">Published:</span>{" "}
-                        {new Date(viewingBook.publishedAt).toLocaleDateString()}
+                        {viewingBook.published_at
+                          ? new Date(
+                              viewingBook.published_at,
+                            ).toLocaleDateString()
+                          : "Not specified"}
                       </div>
                       {viewingBook.isbn && (
                         <div>
@@ -568,7 +572,7 @@ export default function BooksAdminPage() {
                       </div>
                     </div>
 
-                    {viewingBook.tags.length > 0 && (
+                    {viewingBook.tags && viewingBook.tags.length > 0 && (
                       <div>
                         <h4 className="font-semibold mb-2">Tags</h4>
                         <div className="flex flex-wrap gap-2">
@@ -581,10 +585,10 @@ export default function BooksAdminPage() {
                       </div>
                     )}
 
-                    {viewingBook.purchaseUrl && (
+                    {viewingBook.purchase_url && (
                       <div>
                         <a
-                          href={viewingBook.purchaseUrl}
+                          href={viewingBook.purchase_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 text-sm underline"

@@ -16,10 +16,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Home },

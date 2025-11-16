@@ -110,15 +110,8 @@ export default function BlogsAdminPage() {
     setFormOpen(true);
   };
 
-  const handleFormClose = () => {
-    setFormOpen(false);
-    setEditingPostId(null);
-    setSelectedBlogPost(null);
-  };
-
   const handleFormSuccess = () => {
     refreshBlogPosts();
-    handleFormClose();
   };
 
   // Handle post actions
@@ -397,15 +390,15 @@ export default function BlogsAdminPage() {
                             <span>Tags:</span>
                             <div className="flex gap-1">
                               {post.tags?.slice(0, 3).map((tag, index) => {
-                                // Handle both string and object tag formats
+                                // Handle tag format - tags should be strings according to the type definition
                                 const tagValue =
                                   typeof tag === "string"
                                     ? tag
-                                    : (tag as any)?.name || `Tag ${index + 1}`;
+                                    : `Tag ${index + 1}`;
                                 const tagKey =
                                   typeof tag === "string"
                                     ? tag
-                                    : (tag as any)?.id || `tag-${index}`;
+                                    : `tag-${index}`;
 
                                 return (
                                   <Badge
@@ -543,8 +536,8 @@ export default function BlogsAdminPage() {
 
       {/* Blog Post Form Dialog */}
       <BlogPostForm
-        isOpen={formOpen}
-        onClose={handleFormClose}
+        open={formOpen}
+        onOpenChange={setFormOpen}
         postId={editingPostId}
         onSuccess={handleFormSuccess}
       />

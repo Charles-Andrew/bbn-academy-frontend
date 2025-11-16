@@ -17,26 +17,35 @@ export async function GET(_request: NextRequest) {
 
     console.log("API: Supabase client created");
 
-    const {
-      data: books,
-      error,
-      count,
-    } = await supabase
-      .from("books")
-      .select("*", { count: "exact" })
-      .eq("featured", true)
-      .order("created_at", { ascending: false })
-      .limit(10);
+    // Get featured books and total count in parallel
+    const [featuredQuery, totalQuery] = await Promise.all([
+      supabase
+        .from("books")
+        .select("*")
+        .eq("featured", true)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabase.from("books").select("*", { count: "exact", head: true }),
+    ]);
 
-    console.log("API: Direct query result:", {
-      books: books?.length,
-      error,
-      count,
+    const { data: books, error: featuredError } = featuredQuery;
+    const { count: totalCount, error: countError } = totalQuery;
+
+    console.log("API: Query results:", {
+      featuredBooks: books?.length,
+      featuredError,
+      totalCount,
+      countError,
     });
 
-    if (error) {
-      console.error("API: Supabase error:", error);
-      throw new Error(`Database error: ${error.message}`);
+    if (featuredError) {
+      console.error("API: Supabase error (featured):", featuredError);
+      throw new Error(`Database error: ${featuredError.message}`);
+    }
+
+    if (countError) {
+      console.error("API: Supabase error (count):", countError);
+      throw new Error(`Database error: ${countError.message}`);
     }
 
     if (!books || books.length === 0) {
@@ -44,6 +53,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: [],
+        totalCount: totalCount || 0,
       });
     }
 
@@ -52,6 +62,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: books,
+      totalCount: totalCount || 0,
     });
   } catch (error) {
     console.error("API: Error fetching featured books:", error);

@@ -2,7 +2,7 @@ import {
   getBlogPostBySlug,
   getBlogPosts as getBlogPostsFromDb,
   getBlogTags as getBlogTagsFromDb,
-} from "@/lib/supabase/blog";
+} from "@/lib/blog-server";
 import type { BlogFilters, BlogPost, BlogTag } from "@/types/blog";
 
 // Cache for static data to improve performance
@@ -40,6 +40,7 @@ const updateCache = async () => {
     // Transform posts to match expected format
     const transformedPosts = postsResult.posts.map((post) => ({
       ...post,
+      featured_media_id: post.featured_image, // Map from database field
       tags:
         post.post_tags?.map(
           (pt: { blog_tags: { name: string } }) => pt.blog_tags.name,

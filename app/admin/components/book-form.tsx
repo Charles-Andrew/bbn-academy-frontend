@@ -95,7 +95,7 @@ export function BookForm({
   const [tags, setTags] = useState<string[]>(book?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(
-    book?.coverImage || null,
+    book?.cover_image || null,
   );
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -133,21 +133,21 @@ export function BookForm({
         await form.reset({
           title: book.title || "",
           description: book.description || "",
-          coverImage: book.coverImage || "",
+          coverImage: book.cover_image || "",
           author: book.author || "",
           genre: book.genre || "",
-          publishedAt: book.publishedAt
-            ? new Date(book.publishedAt).toISOString().split("T")[0]
+          publishedAt: book.published_at
+            ? new Date(book.published_at).toISOString().split("T")[0]
             : "",
           isbn: book.isbn || "",
           price: book.price || undefined,
-          purchaseUrl: book.purchaseUrl || "",
+          purchaseUrl: book.purchase_url || "",
           tags: book.tags || [],
           featured: book.featured || false,
           content: book.content || "",
         });
         setTags(book.tags || []);
-        setImagePreview(book.coverImage || null);
+        setImagePreview(book.cover_image || null);
       } else {
         await form.reset({
           title: "",
@@ -236,8 +236,8 @@ export function BookForm({
     const currentPublished = currentValues.publishedAt
       ? new Date(currentValues.publishedAt).toISOString().split("T")[0]
       : "";
-    const originalPublished = book.publishedAt
-      ? new Date(book.publishedAt).toISOString().split("T")[0]
+    const originalPublished = book.published_at
+      ? new Date(book.published_at).toISOString().split("T")[0]
       : "";
     if (currentPublished !== originalPublished) return true;
 
@@ -250,7 +250,7 @@ export function BookForm({
 
     // Check cover image changes
     if (selectedFile) return true; // New file selected
-    if (currentValues.coverImage !== book.coverImage) return true; // URL changed
+    if (currentValues.coverImage !== book.cover_image) return true; // URL changed
 
     // Use dirty fields as additional check, but only for actual user changes
     const dirtyFieldKeys = Object.keys(form.formState.dirtyFields);

@@ -81,7 +81,7 @@ export default function AboutPage() {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-background via-background to-muted/20">
+      <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
             <div className="relative inline-block mb-8">
@@ -112,7 +112,7 @@ export default function AboutPage() {
       </section>
 
       {/* Author Bio */}
-      <section className="py-16">
+      <section className="py-16 bg-gradient-to-b from-background to-secondary/5">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -167,7 +167,10 @@ export default function AboutPage() {
       </section>
 
       {/* Journey Timeline */}
-      <section id="journey" className="py-16 bg-muted/30">
+      <section
+        id="journey"
+        className="py-16 bg-gradient-to-br from-primary/5 to-secondary/5"
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -204,7 +207,7 @@ export default function AboutPage() {
       </section>
 
       {/* Achievements */}
-      <section className="py-16">
+      <section className="py-16 bg-muted/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Achievements & Impact</h2>
@@ -230,7 +233,10 @@ export default function AboutPage() {
       </section>
 
       {/* Social Links */}
-      <section id="social" className="py-16 bg-muted/30">
+      <section
+        id="social"
+        className="py-16 bg-gradient-to-t from-primary/10 to-background"
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-6">Connect With Me</h2>

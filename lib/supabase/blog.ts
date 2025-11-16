@@ -1,6 +1,6 @@
 import type { BlogFiltersData, BlogPaginationData } from "@/lib/validations";
+import type { BlogMedia, BlogPost as IBlogPost } from "@/types/blog";
 import type { Database } from "./types";
-import type { BlogPost as IBlogPost } from "@/types/blog";
 
 // Helper function to get the right client based on context
 async function getSupabaseClient() {
@@ -20,20 +20,41 @@ type BlogPostUpdate = Database["public"]["Tables"]["blog_posts"]["Update"];
 type BlogTag = Database["public"]["Tables"]["blog_tags"]["Row"];
 type BlogTagInsert = Database["public"]["Tables"]["blog_tags"]["Insert"];
 type BlogTagUpdate = Database["public"]["Tables"]["blog_tags"]["Update"];
+// Local type definition since blog_media table might not exist in database types yet
+type BlogMediaRow = {
+  id: string;
+  post_id: string;
+  file_name: string;
+  file_path: string;
+  file_type: "image" | "video";
+  mime_type: string;
+  file_size: number;
+  width?: number;
+  height?: number;
+  duration?: number;
+  alt_text?: string;
+  caption?: string;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
 
-// Type for blog post with joined tags from Supabase
-type BlogPostWithTags = BlogPost & {
+// Type for blog post with joined tags and media from Supabase
+type BlogPostWithTagsAndMedia = BlogPost & {
   post_tags?: Array<{
     blog_tags: BlogTag;
   }>;
+  blog_media?: BlogMediaRow[];
 };
 
-type PostWithTagsFromDB = {
+type PostWithTagsAndMediaFromDB = {
   [K in keyof BlogPost]: BlogPost[K];
 } & {
   post_tags?: Array<{
     blog_tags: BlogTag;
   }>;
+  blog_media?: BlogMediaRow[];
 };
 
 // Blog Post CRUD Operations
@@ -60,6 +81,22 @@ export async function getBlogPosts(
           name,
           slug
         )
+      ),
+      blog_media(
+        id,
+        file_name,
+        file_path,
+        file_type,
+        mime_type,
+        file_size,
+        width,
+        height,
+        duration,
+        alt_text,
+        caption,
+        is_featured,
+        sort_order,
+        created_at
       )
     `,
       { count: "exact" },
@@ -130,11 +167,41 @@ export async function getBlogPosts(
     throw new Error("Failed to fetch blog posts");
   }
 
-  // Transform the data to include tags as a simple array of tag names
-  const transformedPosts = posts?.map((post: PostWithTagsFromDB) => ({
-    ...post,
-    tags: post.post_tags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || [],
-  }));
+  // Transform the data to include tags as a simple array of tag names and media with public URLs
+  const transformedPosts = posts?.map((post: PostWithTagsAndMediaFromDB) => {
+    // Transform media data to include public URLs
+    const media =
+      post.blog_media
+        ?.map((mediaItem) => {
+          // Note: This would need the actual Supabase client instance
+          // For now, we'll return the media as is and let the API handle URL generation
+          return {
+            id: mediaItem.id,
+            post_id: mediaItem.post_id,
+            file_name: mediaItem.file_name,
+            file_path: mediaItem.file_path,
+            file_type: mediaItem.file_type as "image" | "video",
+            mime_type: mediaItem.mime_type,
+            file_size: mediaItem.file_size,
+            width: mediaItem.width,
+            height: mediaItem.height,
+            duration: mediaItem.duration,
+            alt_text: mediaItem.alt_text,
+            caption: mediaItem.caption,
+            is_featured: mediaItem.is_featured,
+            sort_order: mediaItem.sort_order,
+            created_at: mediaItem.created_at,
+          } as BlogMedia;
+        })
+        .sort((a, b) => a.sort_order - b.sort_order) || [];
+
+    return {
+      ...post,
+      tags:
+        post.post_tags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || [],
+      media,
+    };
+  });
 
   return {
     posts: transformedPosts,
@@ -160,6 +227,22 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
           name,
           slug
         )
+      ),
+      blog_media(
+        id,
+        file_name,
+        file_path,
+        file_type,
+        mime_type,
+        file_size,
+        width,
+        height,
+        duration,
+        alt_text,
+        caption,
+        is_featured,
+        sort_order,
+        created_at
       )
     `)
     .eq("slug", slug)
@@ -170,14 +253,42 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
     throw new Error("Failed to fetch blog post");
   }
 
-  // Transform the data to include tags as a simple array
-  const blogPostWithTags = post as BlogPostWithTags;
+  // Transform the data to include tags as a simple array and media with public URLs
+  const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
+
+  // Transform media data
+  const media =
+    blogPostWithTagsAndMedia.blog_media
+      ?.map(
+        (mediaItem) =>
+          ({
+            id: mediaItem.id,
+            post_id: mediaItem.post_id,
+            file_name: mediaItem.file_name,
+            file_path: mediaItem.file_path,
+            file_type: mediaItem.file_type as "image" | "video",
+            mime_type: mediaItem.mime_type,
+            file_size: mediaItem.file_size,
+            width: mediaItem.width,
+            height: mediaItem.height,
+            duration: mediaItem.duration,
+            alt_text: mediaItem.alt_text,
+            caption: mediaItem.caption,
+            is_featured: mediaItem.is_featured,
+            sort_order: mediaItem.sort_order,
+            created_at: mediaItem.created_at,
+          }) as BlogMedia,
+      )
+      .sort((a, b) => a.sort_order - b.sort_order) || [];
+
   const transformedPost: IBlogPost = {
-    ...blogPostWithTags,
+    ...blogPostWithTagsAndMedia,
+    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
     tags:
-      blogPostWithTags.post_tags
+      blogPostWithTagsAndMedia.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
+    media,
   };
 
   return transformedPost;
@@ -196,6 +307,22 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
           name,
           slug
         )
+      ),
+      blog_media(
+        id,
+        file_name,
+        file_path,
+        file_type,
+        mime_type,
+        file_size,
+        width,
+        height,
+        duration,
+        alt_text,
+        caption,
+        is_featured,
+        sort_order,
+        created_at
       )
     `)
     .eq("id", id)
@@ -206,14 +333,42 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
     throw new Error("Failed to fetch blog post");
   }
 
-  // Transform the data to include tags as a simple array
-  const blogPostWithTags = post as BlogPostWithTags;
+  // Transform the data to include tags as a simple array and media with public URLs
+  const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
+
+  // Transform media data
+  const media =
+    blogPostWithTagsAndMedia.blog_media
+      ?.map(
+        (mediaItem) =>
+          ({
+            id: mediaItem.id,
+            post_id: mediaItem.post_id,
+            file_name: mediaItem.file_name,
+            file_path: mediaItem.file_path,
+            file_type: mediaItem.file_type as "image" | "video",
+            mime_type: mediaItem.mime_type,
+            file_size: mediaItem.file_size,
+            width: mediaItem.width,
+            height: mediaItem.height,
+            duration: mediaItem.duration,
+            alt_text: mediaItem.alt_text,
+            caption: mediaItem.caption,
+            is_featured: mediaItem.is_featured,
+            sort_order: mediaItem.sort_order,
+            created_at: mediaItem.created_at,
+          }) as BlogMedia,
+      )
+      .sort((a, b) => a.sort_order - b.sort_order) || [];
+
   const transformedPost: IBlogPost = {
-    ...blogPostWithTags,
+    ...blogPostWithTagsAndMedia,
+    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
     tags:
-      blogPostWithTags.post_tags
+      blogPostWithTagsAndMedia.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
+    media,
   };
 
   return transformedPost;
@@ -495,4 +650,156 @@ export async function getBlogStats() {
     draft: draftResult.count || 0,
     tags: tagsResult.count || 0,
   };
+}
+
+// Blog Media CRUD Operations
+export async function getBlogMediaByPostId(
+  postId: string,
+): Promise<BlogMedia[]> {
+  const supabase = await getSupabaseClient();
+
+  const { data: media, error } = await supabase
+    .from("blog_media")
+    .select("*")
+    .eq("post_id", postId)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching blog media:", error);
+    throw new Error("Failed to fetch blog media");
+  }
+
+  return (media || []).map((mediaItem) => ({
+    ...mediaItem,
+    file_type: mediaItem.file_type as "image" | "video",
+  })) as BlogMedia[];
+}
+
+export async function getBlogMediaById(id: string): Promise<BlogMedia> {
+  const supabase = await getSupabaseClient();
+
+  const { data: media, error } = await supabase
+    .from("blog_media")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching blog media by ID:", error);
+    throw new Error("Failed to fetch blog media");
+  }
+
+  return {
+    ...media,
+    file_type: media.file_type as "image" | "video",
+  } as BlogMedia;
+}
+
+export async function updateBlogMedia(
+  id: string,
+  data: Partial<BlogMedia>,
+): Promise<BlogMedia> {
+  const supabase = await getSupabaseClient();
+
+  // If setting as featured, unset other featured media for this post
+  if (data.is_featured) {
+    const { data: currentMedia } = await supabase
+      .from("blog_media")
+      .select("post_id")
+      .eq("id", id)
+      .single();
+
+    if (currentMedia) {
+      await supabase
+        .from("blog_media")
+        .update({ is_featured: false })
+        .eq("post_id", currentMedia.post_id)
+        .neq("id", id);
+    }
+  }
+
+  const { data: media, error } = await supabase
+    .from("blog_media")
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating blog media:", error);
+    throw new Error("Failed to update blog media");
+  }
+
+  return {
+    ...media,
+    file_type: media.file_type as "image" | "video",
+  } as BlogMedia;
+}
+
+export async function deleteBlogMedia(id: string): Promise<void> {
+  const supabase = await getSupabaseClient();
+
+  // Get media details before deletion
+  const { data: media, error: fetchError } = await supabase
+    .from("blog_media")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !media) {
+    throw new Error("Media not found");
+  }
+
+  // Delete from database
+  const { error: deleteError } = await supabase
+    .from("blog_media")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    console.error("Error deleting media record:", deleteError);
+    throw new Error("Failed to delete media");
+  }
+
+  // Delete from storage
+  const { error: storageError } = await supabase.storage
+    .from("blog-media")
+    .remove([media.file_path]);
+
+  if (storageError) {
+    console.error("Error deleting file from storage:", storageError);
+    // Don't throw here as the record was deleted, but log the error
+  }
+}
+
+export async function reorderBlogMedia(
+  postId: string,
+  mediaIds: string[],
+): Promise<void> {
+  const supabase = await getSupabaseClient();
+
+  const updates = mediaIds.map((mediaId, index) =>
+    supabase
+      .from("blog_media")
+      .update({ sort_order: index })
+      .eq("id", mediaId)
+      .eq("post_id", postId),
+  );
+
+  const results = await Promise.all(updates);
+
+  const hasErrors = results.some((result) => result.error);
+  if (hasErrors) {
+    console.error("Error reordering blog media");
+    throw new Error("Failed to reorder blog media");
+  }
+}
+
+// Helper function to get public URL for media files
+export function getMediaPublicUrl(filePath: string): string {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error("Supabase URL not configured");
+  }
+  return `${supabaseUrl}/storage/v1/object/public/blog-media/${filePath}`;
 }

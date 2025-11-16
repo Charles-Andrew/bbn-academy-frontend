@@ -4,7 +4,7 @@ export interface BlogPost {
   slug: string;
   excerpt: string | null;
   content: string;
-  featured_image: string | null;
+  featured_media_id: string | null; // Changed from featured_image to reference blog_media table
   author_id: string;
   published_at: string | null;
   is_published: boolean;
@@ -12,6 +12,7 @@ export interface BlogPost {
   created_at: string;
   tags?: string[];
   featured?: boolean;
+  media?: BlogMedia[]; // New field for multiple media files
 }
 
 export interface BlogTag {
@@ -23,8 +24,40 @@ export interface BlogTag {
   created_at?: string;
 }
 
+export interface BlogMedia {
+  id: string;
+  post_id: string;
+  file_name: string;
+  file_path: string;
+  file_type: "image" | "video";
+  mime_type: string;
+  file_size: number;
+  width?: number;
+  height?: number;
+  duration?: number; // for videos in seconds
+  alt_text?: string;
+  caption?: string;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface BlogFilters {
   tag?: string;
   search?: string;
   published?: boolean;
+}
+
+export interface MediaUploadOptions {
+  files: File[];
+  postId: string;
+  onProgress?: (progress: number) => void;
+  onFileUploaded?: (media: BlogMedia) => void;
+  onError?: (error: string) => void;
+}
+
+export interface MediaGalleryItem {
+  media: BlogMedia;
+  isEditing: boolean;
+  preview?: string;
 }

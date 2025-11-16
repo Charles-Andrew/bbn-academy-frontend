@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -23,28 +23,26 @@ export function ThemeToggle() {
   };
 
   const getIcon = () => {
-    const currentTheme = mounted ? (theme || "system") : "system";
+    const currentTheme = mounted ? theme || "system" : "system";
 
     switch (currentTheme) {
       case "light":
         return <Sun className="h-[1.2rem] w-[1.2rem]" />;
       case "dark":
         return <Moon className="h-[1.2rem] w-[1.2rem]" />;
-      case "system":
       default:
         return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
     }
   };
 
   const getLabel = () => {
-    const currentTheme = mounted ? (theme || "system") : "system";
+    const currentTheme = mounted ? theme || "system" : "system";
 
     switch (currentTheme) {
       case "light":
         return "Switch to dark mode";
       case "dark":
-        return "Switch to system theme";
-      case "system":
+        return "Switch to system mode";
       default:
         return "Switch to light mode";
     }

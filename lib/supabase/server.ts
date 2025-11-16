@@ -1,12 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+// Cookie store interface for different environments
+interface CookieStore {
+  getAll: () => Array<{ name: string; value: string }>;
+  set: (name: string, value: string, options?: Record<string, unknown>) => void;
+}
+
 export async function createClient() {
   // During build time (static generation), we can't access cookies
   // so we'll create a client with empty cookies
   const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
 
-  let cookieStore;
+  let cookieStore: CookieStore;
   try {
     cookieStore = await cookies();
   } catch (error) {
@@ -40,9 +46,9 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
         } catch {
           // The `setAll` method was called from a Server Component.
           // This can be ignored if you have middleware refreshing

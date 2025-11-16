@@ -2,7 +2,7 @@
 
 import { File, FileText, Image, Upload, X } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useDropzone, type FileRejection } from "react-dropzone";
+import { type FileRejection, useDropzone } from "react-dropzone";
 import { Button } from "./button";
 import { Card } from "./card";
 

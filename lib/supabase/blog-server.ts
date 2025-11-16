@@ -8,7 +8,26 @@ type BlogPostUpdate = Database["public"]["Tables"]["blog_posts"]["Update"];
 type BlogTag = Database["public"]["Tables"]["blog_tags"]["Row"];
 type BlogTagInsert = Database["public"]["Tables"]["blog_tags"]["Insert"];
 type BlogTagUpdate = Database["public"]["Tables"]["blog_tags"]["Update"];
-type PostTag = Database["public"]["Tables"]["post_tags"]["Row"];
+
+// Valid sortable columns for blog posts
+type BlogPostSortableColumn =
+  | "created_at"
+  | "updated_at"
+  | "title"
+  | "published_at"
+  | "is_published";
+
+// Blog post with string tags type
+type BlogPostWithStringTags = BlogPost & {
+  tags: string[];
+};
+
+// Type for blog post with joined post_tags from database
+type BlogPostWithPostTags = BlogPost & {
+  post_tags?: Array<{
+    blog_tags: BlogTag;
+  }>;
+};
 
 // Blog Post CRUD Operations (Server-only)
 export async function getBlogPosts(
@@ -78,7 +97,9 @@ export async function getBlogPosts(
   // Apply sorting
   const sortColumn = filters.sortBy || "created_at";
   const sortOrder = filters.sortOrder || "desc";
-  query = query.order(sortColumn as any, { ascending: sortOrder === "asc" });
+  query = query.order(sortColumn as BlogPostSortableColumn, {
+    ascending: sortOrder === "asc",
+  });
 
   const {
     data: posts,
@@ -92,11 +113,12 @@ export async function getBlogPosts(
   }
 
   // Transform the data to include tags as a simple array of tag names
-  const transformedPosts = posts?.map((post: any) => ({
+  const transformedPosts = posts?.map((post: BlogPostWithPostTags) => ({
     ...post,
     tags:
-      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
-      [],
+      post.post_tags
+        ?.map((pt: { blog_tags: BlogTag }) => pt.blog_tags?.name)
+        .filter(Boolean) || [],
   }));
 
   return {
@@ -135,20 +157,21 @@ export async function getBlogPostBySlug(
     throw new Error("Failed to fetch blog post");
   }
 
-  // Transform the data to include tags as a simple array
+  // Transform the data to include tags as array of BlogTag objects
   const transformedPost = {
     ...post,
     tags:
-      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
-      [],
+      post.post_tags
+        ?.map((pt: { blog_tags: BlogTag }) => pt.blog_tags)
+        .filter(Boolean) || [],
   };
 
-  return transformedPost as any;
+  return transformedPost as BlogPost & { tags: BlogTag[] };
 }
 
 export async function getBlogPostById(
   id: string,
-): Promise<BlogPost & { tags: BlogTag[] }> {
+): Promise<BlogPostWithStringTags> {
   const supabase = await createClient();
 
   const { data: post, error } = await supabase
@@ -172,14 +195,15 @@ export async function getBlogPostById(
   }
 
   // Transform the data to include tags as a simple array
-  const transformedPost = {
+  const transformedPost: BlogPostWithStringTags = {
     ...post,
     tags:
-      post.post_tags?.map((pt: any) => pt.blog_tags?.name).filter(Boolean) ||
-      [],
+      post.post_tags
+        ?.map((pt: { blog_tags: BlogTag }) => pt.blog_tags?.name)
+        .filter(Boolean) || [],
   };
 
-  return transformedPost as any;
+  return transformedPost;
 }
 
 export async function createBlogPost(

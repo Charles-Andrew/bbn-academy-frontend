@@ -346,7 +346,10 @@ export function EngagementList({ className }: EngagementListProps) {
 
                 {/* Sort */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label
+                    htmlFor="sort-select"
+                    className="text-sm font-medium mb-2 block"
+                  >
                     Sort by
                   </label>
                   <Select
@@ -365,7 +368,7 @@ export function EngagementList({ className }: EngagementListProps) {
                       });
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="sort-select">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>

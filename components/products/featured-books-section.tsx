@@ -1,6 +1,9 @@
 "use client";
 
+import { ArrowRight, BookOpen } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { MotionFadeIn } from "@/components/ui/motion-fade-in";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Database } from "@/lib/supabase/types";
@@ -10,6 +13,7 @@ type Book = Database["public"]["Tables"]["books"]["Row"];
 
 export function FeaturedBooksSection() {
   const [books, setBooks] = useState<Book[]>([]);
+  const [totalBooks, setTotalBooks] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +36,7 @@ export function FeaturedBooksSection() {
         if (data.success) {
           console.log("Client: Books data received:", data.data);
           setBooks(data.data || []);
+          setTotalBooks(data.totalCount || data.data?.length || 0);
           setError(null);
         } else {
           console.error("Client: API returned error:", data.error);
@@ -120,16 +125,24 @@ export function FeaturedBooksSection() {
     <section className="py-16 md:py-24 bg-muted/10">
       <div className="container mx-auto px-4">
         <MotionFadeIn className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Featured Books
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <BookOpen className="w-8 h-8 text-primary" />
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Featured Books
+            </h2>
+          </div>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-2">
             Handpicked books that inspire, educate, and transform your
             perspective on life and learning
           </p>
+          {totalBooks > books.length && (
+            <p className="text-sm text-muted-foreground">
+              Showing {books.length} of {totalBooks} books
+            </p>
+          )}
         </MotionFadeIn>
 
-        <div className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto mb-12">
           {books.map((book) => (
             <div
               key={book.id}
@@ -139,6 +152,26 @@ export function FeaturedBooksSection() {
             </div>
           ))}
         </div>
+
+        <MotionFadeIn className="text-center">
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 group"
+            asChild
+          >
+            <Link href="/books" className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              View All Books
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+          {totalBooks > books.length && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Explore our complete collection of {totalBooks} books
+            </p>
+          )}
+        </MotionFadeIn>
       </div>
     </section>
   );

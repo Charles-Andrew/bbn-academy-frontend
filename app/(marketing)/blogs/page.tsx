@@ -17,7 +17,7 @@ export default async function BlogsPage() {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-background via-background to-muted/20">
+      <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/10">
         <div className="container mx-auto px-4 py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
@@ -40,7 +40,7 @@ export default async function BlogsPage() {
 
       {/* Featured Posts Section */}
       {featuredPosts.length > 0 && (
-        <section className="py-16 md:py-24">
+        <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/5">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
@@ -117,7 +117,10 @@ export default async function BlogsPage() {
       )}
 
       {/* Recent Posts Section */}
-      <section id="recent-posts" className="py-16 md:py-24 bg-muted/20">
+      <section
+        id="recent-posts"
+        className="py-16 md:py-24 bg-gradient-to-br from-primary/5 to-secondary/5"
+      >
         <div className="container mx-auto px-4">
           <MotionFadeIn className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
@@ -207,7 +210,7 @@ export default async function BlogsPage() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-gradient-to-t from-primary/10 to-background">
         <div className="container mx-auto px-4">
           <MotionFadeIn className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">

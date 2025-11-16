@@ -86,12 +86,20 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validatedData = blogPostSchema.parse(body);
 
-    // Generate unique slug if not provided
+    // Generate unique slug if not provided or ensure uniqueness if provided
     let slug = validatedData.slug;
-    if (!slug) {
+    if (!slug || slug.trim() === "") {
+      // Generate slug from title
       slug = await generateUniqueSlug(validatedData.title);
     } else {
-      // Ensure slug is unique
+      // User provided a slug - ensure it's properly formatted and unique
+      // Clean up the slug first
+      slug = slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      // Ensure uniqueness by adding numbers if needed
       slug = await generateUniqueSlug(slug);
     }
 
@@ -109,7 +117,7 @@ export async function POST(request: NextRequest) {
       slug,
       excerpt: validatedData.excerpt,
       content: validatedData.content,
-      featured_image: validatedData.featuredImage || null,
+      featured_media_id: validatedData.featuredMediaId || null, // Changed from featured_image
       author_id: authorId,
       published_at:
         validatedData.isPublished && validatedData.publishedAt

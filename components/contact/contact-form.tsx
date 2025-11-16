@@ -1,16 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Loader2,
-  Mail,
-  MapPin,
-  Phone,
-  Send,
-} from "lucide-react";
+import { Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -32,16 +23,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { type ContactFormData, contactFormSchema } from "@/lib/validations";
 import type { ContactPurpose } from "@/types/contact";
 import { CONTACT_PURPOSES } from "@/types/contact";
 
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
+  const [_submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const { success, error } = useToast();
 
   const {
     register,
@@ -77,26 +70,42 @@ export function ContactForm() {
     setSubmitStatus("idle");
 
     try {
-      // For now, we'll just log the data since we're not connecting to backend yet
-      console.log("Contact form submission:", {
-        ...data,
-        attachments:
-          data.attachments?.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-          })) || [],
+      // Submit the form data to the API
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const result = await response.json();
 
-      setSubmitStatus("success");
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to submit contact form");
+      }
+
+      // Show success toast
+      success("Message sent successfully!", {
+        description:
+          "Thank you for reaching out. I'll get back to you within 24-48 hours.",
+      });
+
+      // Reset form
       reset();
       setAttachments([]);
-    } catch (error) {
-      console.error("Contact form error:", error);
+      setSubmitStatus("success");
+    } catch (err) {
+      console.error("Contact form error:", err);
       setSubmitStatus("error");
+
+      // Show error toast
+      error("Failed to send message", {
+        description:
+          err instanceof Error
+            ? err.message
+            : "Please try again or email us directly at hello@bbnacademy.com",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -105,7 +114,7 @@ export function ContactForm() {
   return (
     <>
       {/* Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Get in <span className="text-primary">Touch</span>
@@ -117,7 +126,7 @@ export function ContactForm() {
         </div>
       </section>
 
-      <div className="py-16 px-4">
+      <div className="py-16 px-4 bg-gradient-to-b from-background to-secondary/5">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
           {/* Contact Info Cards */}
           <div className="lg:col-span-1 space-y-6">
@@ -131,9 +140,6 @@ export function ContactForm() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm">hello@bbnacademy.com</p>
-                <p className="text-sm text-muted-foreground">
-                  consultations@bbnacademy.com
-                </p>
               </CardContent>
             </Card>
 
@@ -159,41 +165,15 @@ export function ContactForm() {
                   <MapPin className="w-5 h-5 text-primary" />
                   Location
                 </CardTitle>
-                <CardDescription>Based in San Francisco</CardDescription>
+                <CardDescription>Visit our academy</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">San Francisco, CA</p>
+                <p className="text-sm">
+                  Alim St. Kidapawan City, North Cotabato, Philippines
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Available for virtual meetings worldwide
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Response Time
-                </CardTitle>
-                <CardDescription>
-                  When you can expect to hear back
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>General Inquiries:</span>
-                    <span className="text-muted-foreground">24-48 hours</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Service Bookings:</span>
-                    <span className="text-muted-foreground">48 hours</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Collaboration:</span>
-                    <span className="text-muted-foreground">3-5 days</span>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -209,34 +189,6 @@ export function ContactForm() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {submitStatus === "success" && (
-                  <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
-                      <CheckCircle className="w-5 h-5" />
-                      <span className="font-medium">
-                        Message sent successfully!
-                      </span>
-                    </div>
-                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      Thank you for reaching out. I'll get back to you within
-                      24-48 hours.
-                    </p>
-                  </div>
-                )}
-
-                {submitStatus === "error" && (
-                  <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                      <AlertCircle className="w-5 h-5" />
-                      <span className="font-medium">Something went wrong</span>
-                    </div>
-                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                      Please try again or email me directly at
-                      hello@bbnacademy.com
-                    </p>
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -356,7 +308,7 @@ export function ContactForm() {
       </div>
 
       {/* Newsletter Section */}
-      <section className="py-20 px-4 bg-muted/20">
+      <section className="py-20 px-4 bg-gradient-to-t from-primary/10 to-background">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Stay Connected

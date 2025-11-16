@@ -85,7 +85,7 @@ export function BookCard({
     );
   };
 
-  const formatPrice = (price?: number) => {
+  const formatPrice = (price?: number | null) => {
     if (!price) return "Free";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -95,7 +95,7 @@ export function BookCard({
 
   const handleImageError = () => {
     console.error(
-      `Failed to load image for book "${book.title}": ${book.coverImage}`,
+      `Failed to load image for book "${book.title}": ${book.cover_image}`,
     );
     if (imageRetries < 2) {
       // Retry loading the image up to 2 times
@@ -119,10 +119,10 @@ export function BookCard({
             <div className="flex gap-3 flex-1 min-w-0">
               {/* Book Cover */}
               <div className="relative w-16 h-20 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
-                {book.coverImage && !imageError ? (
+                {book.cover_image && !imageError ? (
                   <Image
                     key={imageRetries} // Force re-render on retry
-                    src={book.coverImage}
+                    src={book.cover_image}
                     alt={`${book.title} book cover`}
                     fill
                     className="object-cover"
@@ -190,12 +190,12 @@ export function BookCard({
                     </>
                   )}
                 </DropdownMenuItem>
-                {book.purchaseUrl && (
+                {book.purchase_url && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <a
-                        href={book.purchaseUrl}
+                        href={book.purchase_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center"
@@ -225,11 +225,16 @@ export function BookCard({
           </p>
 
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
-            <span>Published: {new Date(book.publishedAt).getFullYear()}</span>
+            <span>
+              Published:{" "}
+              {book.published_at
+                ? new Date(book.published_at).getFullYear()
+                : "N/A"}
+            </span>
             {book.isbn && <span className="font-mono">ISBN: {book.isbn}</span>}
           </div>
 
-          {book.tags.length > 0 && (
+          {book.tags && book.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {book.tags.slice(0, 3).map((tag) => (
                 <Badge
