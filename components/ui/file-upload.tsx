@@ -66,12 +66,16 @@ export function FileUpload({
 
       if (fileRejections.length > 0) {
         const rejection = fileRejections[0];
-        if (rejection.errors.some((e: FileError) => e.code === "file-too-large")) {
+        if (
+          rejection.errors.some((e: FileError) => e.code === "file-too-large")
+        ) {
           setError(
             `File "${rejection.file.name}" is too large. Maximum size is ${formatFileSize(maxSize)}.`,
           );
         } else if (
-          rejection.errors.some((e: FileError) => e.code === "file-invalid-type")
+          rejection.errors.some(
+            (e: FileError) => e.code === "file-invalid-type",
+          )
         ) {
           setError(`File "${rejection.file.name}" has an unsupported type.`);
         } else if (
@@ -109,7 +113,10 @@ export function FileUpload({
       {value.length > 0 && (
         <div className="space-y-2">
           {value.map((file, index) => (
-            <Card key={`file-${file.name}-${file.size}`} className="p-3 flex items-center justify-between">
+            <Card
+              key={`file-${file.name}-${file.size}`}
+              className="p-3 flex items-center justify-between"
+            >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="text-muted-foreground">{getFileIcon(file)}</div>
                 <div className="flex-1 min-w-0">

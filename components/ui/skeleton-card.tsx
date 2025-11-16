@@ -58,7 +58,10 @@ export function TestimonialCardSkeleton() {
       <CardContent className="p-6">
         <div className="flex mb-4 gap-1">
           {[1, 2, 3, 4, 5].map((starPosition) => (
-            <Skeleton key={`testimonial-star-${starPosition}`} className="h-4 w-4" />
+            <Skeleton
+              key={`testimonial-star-${starPosition}`}
+              className="h-4 w-4"
+            />
           ))}
         </div>
         <Skeleton className="h-4 w-full mb-2" />
