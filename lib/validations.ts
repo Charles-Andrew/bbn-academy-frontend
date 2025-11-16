@@ -81,10 +81,14 @@ export const bookSchema = z.object({
   description: z.string().optional(),
   coverImage: z.string().optional(),
   genre: z.string().optional(),
-  publishedAt: z.string().optional(),
+  publishedAt: z.string().nullable().optional(),
   isbn: z.string().optional(),
   price: z.number().positive("Price must be positive").optional().nullable(),
-  purchaseUrl: z.string().url("Purchase URL must be valid").optional().or(z.literal("")),
+  purchaseUrl: z
+    .string()
+    .url("Purchase URL must be valid")
+    .optional()
+    .or(z.literal("")),
   tags: z.array(z.string()).max(10, "Too many tags").default([]),
   featured: z.boolean().default(false),
   content: z.string().optional(),
@@ -114,6 +118,292 @@ export const paginationSchema = z.object({
   offset: z.coerce.number().min(0).optional(),
 });
 
+// Blog post validation schema
+export const blogPostSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Blog title is required")
+    .max(200, "Blog title cannot exceed 200 characters"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(200, "Slug cannot exceed 200 characters")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens",
+    ),
+  excerpt: z
+    .string()
+    .max(500, "Excerpt cannot exceed 500 characters")
+    .optional(),
+  content: z
+    .string()
+    .min(10, "Blog content must be at least 10 characters")
+    .max(50000, "Content cannot exceed 50,000 characters"),
+  featuredImage: z
+    .string()
+    .url("Featured image must be a valid URL")
+    .or(z.literal(""))
+    .optional(),
+  authorId: z.string().uuid("Invalid author ID").optional(),
+  isPublished: z.boolean().default(false),
+  publishedAt: z.string().datetime("Invalid publication date").optional(),
+  readingTime: z
+    .number()
+    .min(1, "Reading time must be at least 1 minute")
+    .max(999, "Reading time cannot exceed 999 minutes")
+    .optional(),
+  tags: z
+    .array(z.string())
+    .max(10, "Cannot have more than 10 tags")
+    .default([]),
+  featured: z.boolean().default(false),
+  seoTitle: z
+    .string()
+    .max(60, "SEO title cannot exceed 60 characters")
+    .optional(),
+  seoDescription: z
+    .string()
+    .max(160, "SEO description cannot exceed 160 characters")
+    .optional(),
+});
+
+// Blog tag validation schema
+export const blogTagSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Tag name is required")
+    .max(50, "Tag name cannot exceed 50 characters")
+    .regex(
+      /^[a-zA-Z0-9\s-]+$/,
+      "Tag name can only contain letters, numbers, spaces, and hyphens",
+    ),
+  slug: z
+    .string()
+    .min(1, "Tag slug is required")
+    .max(50, "Tag slug cannot exceed 50 characters")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Tag slug must contain only lowercase letters, numbers, and hyphens",
+    ),
+  description: z
+    .string()
+    .max(200, "Tag description cannot exceed 200 characters")
+    .optional(),
+  color: z
+    .string()
+    .regex(
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      "Color must be a valid hex color",
+    )
+    .optional(),
+});
+
+// Blog filter validation schema
+export const blogFiltersSchema = z.object({
+  search: z.string().optional(),
+  status: z.enum(["published", "draft", "all"]).default("all"),
+  author: z.string().uuid().optional(),
+  tags: z.array(z.string()).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  featured: z.boolean().optional(),
+  sortBy: z.enum(["created_at", "published_at", "title"]).default("created_at"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
+// Blog image upload validation schema
+export const blogImageUploadSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024, // 5MB
+      "Image size cannot exceed 5MB",
+    )
+    .refine((file) => {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      return allowedTypes.includes(file.type);
+    }, "Only JPEG, PNG, GIF, and WebP images are allowed"),
+  alt: z.string().max(200, "Alt text cannot exceed 200 characters").optional(),
+});
+
+// Blog pagination with filters schema
+export const blogPaginationSchema = paginationSchema.extend({
+  filters: blogFiltersSchema.optional(),
+});
+
+// Blog bulk actions schema
+export const blogBulkActionSchema = z.object({
+  action: z.enum(["publish", "unpublish", "delete", "add_tags", "remove_tags"]),
+  postIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one post must be selected"),
+  tags: z.array(z.string()).optional(), // For tag-related bulk actions
+});
+
+// Engagement validation schema
+export const engagementSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Engagement title is required")
+    .max(200, "Engagement title cannot exceed 200 characters"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(200, "Slug cannot exceed 200 characters")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens",
+    )
+    .optional(),
+  type: z.enum(
+    [
+      "webinar",
+      "workshop",
+      "training",
+      "coaching",
+      "consulting",
+      "speaking",
+      "course",
+      "event",
+    ],
+    {
+      message: "Please select a valid engagement type",
+    },
+  ),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(2000, "Description cannot exceed 2000 characters"),
+  content: z
+    .string()
+    .max(10000, "Content cannot exceed 10,000 characters")
+    .optional(),
+  images: z
+    .array(z.string().url("Invalid image URL"))
+    .max(10, "Cannot have more than 10 images")
+    .default([]),
+  date: z.string().datetime("Invalid date format").optional().or(z.literal("")),
+  duration: z
+    .string()
+    .min(1, "Duration is required")
+    .max(50, "Duration cannot exceed 50 characters"),
+  price: z
+    .number()
+    .min(0, "Price cannot be negative")
+    .max(999999, "Price cannot exceed 999,999")
+    .nullable()
+    .optional(),
+  maxAttendees: z
+    .number()
+    .min(1, "Maximum attendees must be at least 1")
+    .max(999999, "Maximum attendees cannot exceed 999,999")
+    .nullable()
+    .optional(),
+  location: z
+    .string()
+    .max(200, "Location cannot exceed 200 characters")
+    .optional(),
+  isVirtual: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
+  bookingUrl: z
+    .string()
+    .url("Booking URL must be valid")
+    .optional()
+    .or(z.literal("")),
+  status: z
+    .enum(["upcoming", "ongoing", "completed", "cancelled"])
+    .default("upcoming"),
+  tags: z
+    .array(z.string())
+    .max(10, "Cannot have more than 10 tags")
+    .default([]),
+});
+
+// Engagement filters validation schema
+export const engagementFiltersSchema = z.object({
+  search: z.string().optional(),
+  type: z
+    .enum([
+      "webinar",
+      "workshop",
+      "training",
+      "coaching",
+      "consulting",
+      "speaking",
+      "course",
+      "event",
+    ])
+    .optional(),
+  status: z.enum(["upcoming", "ongoing", "completed", "cancelled"]).optional(),
+  upcoming: z.boolean().optional(),
+  virtual: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+  minPrice: z.number().min(0).optional(),
+  maxPrice: z.number().min(0).optional(),
+  sortBy: z
+    .enum(["created_at", "updated_at", "date", "title", "price", "status"])
+    .default("created_at"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
+
+// Engagement image upload validation schema
+export const engagementImageUploadSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 10 * 1024 * 1024, // 10MB
+      "Image size cannot exceed 10MB",
+    )
+    .refine((file) => {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml",
+      ];
+      return allowedTypes.includes(file.type);
+    }, "Only JPEG, PNG, GIF, WebP, and SVG images are allowed"),
+  alt: z.string().max(200, "Alt text cannot exceed 200 characters").optional(),
+});
+
+// Engagement pagination with filters schema
+export const engagementPaginationSchema = paginationSchema.extend({
+  filters: engagementFiltersSchema.optional(),
+});
+
+// Engagement bulk actions schema
+export const engagementBulkActionSchema = z.object({
+  action: z.enum([
+    "delete",
+    "feature",
+    "unfeature",
+    "update_status",
+    "add_tags",
+    "remove_tags",
+  ]),
+  engagementIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one engagement must be selected"),
+  status: z.enum(["upcoming", "ongoing", "completed", "cancelled"]).optional(), // For status update action
+  tags: z.array(z.string()).optional(), // For tag-related bulk actions
+});
+
+// Engagement status update schema
+export const engagementStatusSchema = z.object({
+  status: z.enum(["upcoming", "ongoing", "completed", "cancelled"]),
+  id: z.string().uuid("Invalid engagement ID"),
+});
+
 // Export type inference
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 export type FileUploadData = z.infer<typeof fileUploadSchema>;
@@ -121,3 +411,21 @@ export type MessageStatusData = z.infer<typeof messageStatusSchema>;
 export type BookData = z.infer<typeof bookSchema>;
 export type ServiceData = z.infer<typeof serviceSchema>;
 export type PaginationData = z.infer<typeof paginationSchema>;
+export type BlogPostFormData = z.infer<typeof blogPostSchema>;
+export type BlogTagFormData = z.infer<typeof blogTagSchema>;
+export type BlogFiltersData = z.infer<typeof blogFiltersSchema>;
+export type BlogImageUploadData = z.infer<typeof blogImageUploadSchema>;
+export type BlogPaginationData = z.infer<typeof blogPaginationSchema>;
+export type BlogBulkActionData = z.infer<typeof blogBulkActionSchema>;
+export type EngagementFormData = z.infer<typeof engagementSchema>;
+export type EngagementFiltersData = z.infer<typeof engagementFiltersSchema>;
+export type EngagementImageUploadData = z.infer<
+  typeof engagementImageUploadSchema
+>;
+export type EngagementPaginationData = z.infer<
+  typeof engagementPaginationSchema
+>;
+export type EngagementBulkActionData = z.infer<
+  typeof engagementBulkActionSchema
+>;
+export type EngagementStatusData = z.infer<typeof engagementStatusSchema>;
