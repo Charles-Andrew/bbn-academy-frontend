@@ -23,11 +23,11 @@ import {
 } from "@/data";
 
 export const metadata = {
-  title: "BBN Academy - Knowledge That Transforms and Inspires",
+  title: "BBN Academy - Building Brighter Nexts",
   description:
     "Discover premium products, insightful articles, and engaging workshops designed to accelerate your personal and professional growth.",
   openGraph: {
-    title: "BBN Academy - Knowledge That Transforms and Inspires",
+    title: "BBN Academy - Building Brighter Nexts",
     description:
       "Discover premium products, insightful articles, and engaging workshops designed to accelerate your personal and professional growth.",
     type: "website",
@@ -47,28 +47,29 @@ export default function Home() {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="container mx-auto px-4 py-24 md:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
-              Knowledge That
-              <span className="text-primary"> Transforms</span>
+      <section className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10"></div>
+        <div className="container mx-auto px-4 py-24 md:py-32 relative">
+          <div className="max-w-5xl mx-auto text-center">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+              Building
+              <span className="text-primary"> Brighter</span>
               <br />
-              and Inspires
+              <span className="text-secondary">Nexts</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed">
               Discover premium products, insightful articles, and engaging
               workshops designed to accelerate your personal and professional
               growth.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300" asChild>
                 <Link href="/products">
                   Explore Products
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="border-secondary text-secondary hover:bg-secondary hover:text-foreground transition-all duration-300" asChild>
                 <Link href="/about">Learn More</Link>
               </Button>
             </div>
@@ -77,11 +78,14 @@ export default function Home() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 bg-secondary/20 text-secondary-foreground rounded-full text-sm font-semibold mb-4">
+              Premium Resources
+            </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Featured Products
+              Featured <span className="text-primary">Products</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Premium resources designed to accelerate your growth and success
@@ -133,7 +137,7 @@ export default function Home() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" asChild>
+            <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" asChild>
               <Link href="/products">
                 View All Products
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -144,11 +148,14 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 md:py-24 bg-muted/20">
+      <section className="py-16 md:py-24 bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="container mx-auto px-4">
           <MotionFadeIn className="text-center mb-16">
+            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
+              Community Voice
+            </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              What Readers Say
+              What <span className="text-secondary">Readers</span> Say
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Real feedback from readers who have been inspired by my books
@@ -341,28 +348,33 @@ export default function Home() {
       )}
 
       {/* Stats Section */}
-      <section className="py-16 bg-muted/50">
+      <section className="py-16 bg-gradient-to-r from-primary/10 to-secondary/10">
         <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              Impact by the <span className="text-primary">Numbers</span>
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="space-y-2">
+            <div className="space-y-2 bg-background/80 backdrop-blur-sm rounded-lg p-6 border border-primary/20">
               <div className="flex justify-center">
                 <Package className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-3xl font-bold text-foreground">15+</h3>
+              <h3 className="text-3xl font-bold text-primary">15+</h3>
               <p className="text-muted-foreground">Premium Products</p>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 bg-background/80 backdrop-blur-sm rounded-lg p-6 border border-secondary/20">
               <div className="flex justify-center">
-                <Users className="h-12 w-12 text-primary" />
+                <Users className="h-12 w-12 text-secondary" />
               </div>
-              <h3 className="text-3xl font-bold text-foreground">5K+</h3>
+              <h3 className="text-3xl font-bold text-secondary">5K+</h3>
               <p className="text-muted-foreground">Community Members</p>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 bg-background/80 backdrop-blur-sm rounded-lg p-6 border border-primary/20">
               <div className="flex justify-center">
                 <Star className="h-12 w-12 text-primary" />
               </div>
-              <h3 className="text-3xl font-bold text-foreground">4.9</h3>
+              <h3 className="text-3xl font-bold text-primary">4.9</h3>
               <p className="text-muted-foreground">Average Rating</p>
             </div>
           </div>
@@ -370,24 +382,27 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
+            <span className="inline-block px-3 py-1 bg-secondary/20 text-secondary-foreground rounded-full text-sm font-semibold mb-4">
+              Get Started Today
+            </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Ready to Grow?
+              Ready to <span className="text-primary">Grow</span>?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
               Whether through products, articles, or engagements, I'm here to
               support your journey of continuous improvement.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+              <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg hover:shadow-xl transition-all duration-300" asChild>
                 <Link href="/products">
                   Browse Products
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300" asChild>
                 <Link href="/engagements">View Events</Link>
               </Button>
             </div>
@@ -396,11 +411,14 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 md:py-24 bg-muted/20">
+      <section className="py-16 md:py-24 bg-gradient-to-t from-primary/10 to-background">
         <div className="container mx-auto px-4">
           <MotionFadeIn className="text-center mb-12">
+            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
+              Join Our Community
+            </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Stay Connected
+              Stay <span className="text-secondary">Connected</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Get updates on new books, exclusive writing tips, and special
