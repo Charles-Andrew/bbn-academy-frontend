@@ -1,8 +1,8 @@
 "use client";
 
 import { type MotionProps, motion } from "framer-motion";
+import type { ReactNode } from "react";
 import * as React from "react";
-import { Children, type ReactNode } from "react";
 
 interface MotionFadeInProps extends MotionProps {
   children: ReactNode;
@@ -23,7 +23,6 @@ const getInitialPosition = (direction: string, distance: number) => {
       return { opacity: 0, x: distance };
     case "right":
       return { opacity: 0, x: -distance };
-    case "none":
     default:
       return { opacity: 0 };
   }
@@ -37,7 +36,6 @@ const getAnimatePosition = (direction: string) => {
     case "left":
     case "right":
       return { opacity: 1, x: 0 };
-    case "none":
     default:
       return { opacity: 1 };
   }
@@ -92,7 +90,7 @@ export function MotionStaggerChildren({
     >
       {React.Children.map(children, (child, index) => (
         <motion.div
-          key={index}
+          key={`fade-in-child-${index + 1}`}
           variants={{
             hidden: { opacity: 0, y: 20 },
             visible: {

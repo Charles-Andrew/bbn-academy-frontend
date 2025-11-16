@@ -1,8 +1,8 @@
 "use client";
 
 import { File, FileText, Image, Upload, X } from "lucide-react";
-import React, { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useCallback, useState } from "react";
+import { useDropzone, FileRejection } from "react-dropzone";
 import { Button } from "./button";
 import { Card } from "./card";
 
@@ -13,6 +13,11 @@ interface FileUploadProps {
   onFilesChange: (files: File[]) => void;
   value?: File[];
   className?: string;
+}
+
+interface FileError {
+  code: string;
+  message: string;
 }
 
 const getFileIcon = (file: File) => {
@@ -33,7 +38,7 @@ const formatFileSize = (bytes: number) => {
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / k ** i).toFixed(2)) + " " + sizes[i];
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
 export function FileUpload({
@@ -56,21 +61,21 @@ export function FileUpload({
   const [error, setError] = useState<string>("");
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: any[]) => {
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       setError("");
 
       if (fileRejections.length > 0) {
         const rejection = fileRejections[0];
-        if (rejection.errors.some((e: any) => e.code === "file-too-large")) {
+        if (rejection.errors.some((e: FileError) => e.code === "file-too-large")) {
           setError(
             `File "${rejection.file.name}" is too large. Maximum size is ${formatFileSize(maxSize)}.`,
           );
         } else if (
-          rejection.errors.some((e: any) => e.code === "file-invalid-type")
+          rejection.errors.some((e: FileError) => e.code === "file-invalid-type")
         ) {
           setError(`File "${rejection.file.name}" has an unsupported type.`);
         } else if (
-          rejection.errors.some((e: any) => e.code === "too-many-files")
+          rejection.errors.some((e: FileError) => e.code === "too-many-files")
         ) {
           setError(`You can only upload a maximum of ${maxFiles} files.`);
         } else {
@@ -104,7 +109,7 @@ export function FileUpload({
       {value.length > 0 && (
         <div className="space-y-2">
           {value.map((file, index) => (
-            <Card key={index} className="p-3 flex items-center justify-between">
+            <Card key={`file-${file.name}-${file.size}`} className="p-3 flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="text-muted-foreground">{getFileIcon(file)}</div>
                 <div className="flex-1 min-w-0">

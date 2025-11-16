@@ -2,17 +2,18 @@
 
 import { motion } from "framer-motion";
 import { Card } from "./card";
+import type { TargetAndTransition, VariantLabels } from "framer-motion";
 
 interface MotionCardProps {
   delay?: number;
   duration?: number;
-  initial?: any;
-  animate?: any;
-  whileHover?: any;
-  whileTap?: any;
+  initial?: TargetAndTransition | VariantLabels;
+  animate?: TargetAndTransition | VariantLabels;
+  whileHover?: TargetAndTransition | VariantLabels;
+  whileTap?: TargetAndTransition | VariantLabels;
   children?: React.ReactNode;
   className?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function MotionCard({

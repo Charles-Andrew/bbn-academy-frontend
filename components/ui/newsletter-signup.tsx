@@ -31,7 +31,7 @@ export function NewsletterSignup() {
       console.log("Newsletter signup:", email);
       setIsSubscribed(true);
       setEmail("");
-    } catch (err) {
+    } catch (_err) {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);

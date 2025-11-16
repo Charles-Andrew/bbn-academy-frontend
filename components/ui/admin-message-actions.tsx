@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Trash2, Archive, Check, Reply } from "lucide-react"
+import { Archive, Check, Reply, Trash2 } from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 // Example usage for admin message management
 interface AdminMessageActionsProps {
-  messageId: string
-  messageStatus: "unread" | "read" | "replied"
-  onDelete?: (id: string) => Promise<void>
-  onArchive?: (id: string) => Promise<void>
-  onMarkRead?: (id: string) => Promise<void>
-  onReply?: (id: string) => void
+  messageId: string;
+  messageStatus: "unread" | "read" | "replied";
+  onDelete?: (id: string) => Promise<void>;
+  onArchive?: (id: string) => Promise<void>;
+  onMarkRead?: (id: string) => Promise<void>;
+  onReply?: (id: string) => void;
 }
 
 export function AdminMessageActions({
@@ -23,44 +23,44 @@ export function AdminMessageActions({
   onMarkRead,
   onReply,
 }: AdminMessageActionsProps) {
-  const [loading, setLoading] = React.useState<string | null>(null)
+  const [loading, setLoading] = React.useState<string | null>(null);
 
   const handleDelete = async () => {
-    if (!onDelete) return
-    setLoading("delete")
+    if (!onDelete) return;
+    setLoading("delete");
     try {
-      await onDelete(messageId)
+      await onDelete(messageId);
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
+  };
 
   const handleArchive = async () => {
-    if (!onArchive) return
-    setLoading("archive")
+    if (!onArchive) return;
+    setLoading("archive");
     try {
-      await onArchive(messageId)
+      await onArchive(messageId);
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
+  };
 
   const handleMarkRead = async () => {
-    if (!onMarkRead) return
-    setLoading("read")
+    if (!onMarkRead) return;
+    setLoading("read");
     try {
-      await onMarkRead(messageId)
+      await onMarkRead(messageId);
     } finally {
-      setLoading(null)
+      setLoading(null);
     }
-  }
+  };
 
   return (
     <div className="flex items-center gap-2">
       {/* Mark as Read */}
       {messageStatus === "unread" && onMarkRead && (
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           variant="outline"
           onClick={() => handleMarkRead()}
           disabled={loading === "read"}
@@ -80,8 +80,8 @@ export function AdminMessageActions({
 
       {/* Archive */}
       {onArchive && (
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           variant="outline"
           onClick={() => handleArchive()}
           disabled={loading === "archive"}
@@ -93,8 +93,8 @@ export function AdminMessageActions({
 
       {/* Delete */}
       {onDelete && (
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           variant="destructive"
           onClick={() => handleDelete()}
           disabled={loading === "delete"}
@@ -104,5 +104,5 @@ export function AdminMessageActions({
         </Button>
       )}
     </div>
-  )
+  );
 }

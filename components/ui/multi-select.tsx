@@ -1,15 +1,12 @@
 "use client";
 
+import { Check, ChevronDown, X } from "lucide-react";
 import * as React from "react";
-import { Check, ChevronDown, X, Filter } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -18,14 +15,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface MultiSelectProps<T extends string = string> {
-  options: { label: string; value: T }[]
-  selected: T[]
-  onChange: (selected: T[]) => void
-  placeholder?: string
-  className?: string
-  showClearAll?: boolean
+  options: { label: string; value: T }[];
+  selected: T[];
+  onChange: (selected: T[]) => void;
+  placeholder?: string;
+  className?: string;
+  showClearAll?: boolean;
 }
 
 export function MultiSelect<T extends string = string>({
@@ -36,25 +34,25 @@ export function MultiSelect<T extends string = string>({
   className,
   showClearAll = true,
 }: MultiSelectProps<T>) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
-  const handleUnselect = (value: T) => {
-    onChange(selected.filter(item => item !== value))
-  }
+  const _handleUnselect = (value: T) => {
+    onChange(selected.filter((item) => item !== value));
+  };
 
   const handleSelect = (value: T) => {
     if (selected.includes(value)) {
-      onChange(selected.filter(item => item !== value))
+      onChange(selected.filter((item) => item !== value));
     } else {
-      onChange([...selected, value])
+      onChange([...selected, value]);
     }
-  }
+  };
 
   const handleClearAll = () => {
-    onChange([])
-  }
+    onChange([]);
+  };
 
-  const hasActiveFilters = selected.length > 0
+  const hasActiveFilters = selected.length > 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -63,13 +61,19 @@ export function MultiSelect<T extends string = string>({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full justify-between h-auto min-h-[40px] py-2", className)}
+          className={cn(
+            "w-full justify-between h-auto min-h-[40px] py-2",
+            className,
+          )}
         >
           <div className="flex gap-1 flex-wrap items-center">
             <span className="text-sm">
               {placeholder}
               {selected.length > 0 && (
-                <span className="text-muted-foreground"> ({selected.length})</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  ({selected.length})
+                </span>
               )}
             </span>
           </div>
@@ -105,7 +109,7 @@ export function MultiSelect<T extends string = string>({
                       "mr-2 h-4 w-4",
                       selected.includes(option.value as T)
                         ? "opacity-100"
-                        : "opacity-0"
+                        : "opacity-0",
                     )}
                   />
                   {option.label}
@@ -116,5 +120,5 @@ export function MultiSelect<T extends string = string>({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

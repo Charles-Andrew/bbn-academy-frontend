@@ -57,8 +57,8 @@ export function TestimonialCardSkeleton() {
     <Card>
       <CardContent className="p-6">
         <div className="flex mb-4 gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-4 w-4" />
+          {[1, 2, 3, 4, 5].map((starPosition) => (
+            <Skeleton key={`testimonial-star-${starPosition}`} className="h-4 w-4" />
           ))}
         </div>
         <Skeleton className="h-4 w-full mb-2" />
@@ -140,8 +140,8 @@ export function FeaturedBooksSkeleton() {
           <Skeleton className="h-6 w-96 mx-auto" />
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[...Array(3)].map((_, i) => (
-            <BookCardSkeleton key={i} />
+          {[1, 2, 3].map((skeletonNumber) => (
+            <BookCardSkeleton key={`featured-skeleton-${skeletonNumber}`} />
           ))}
         </div>
       </div>
