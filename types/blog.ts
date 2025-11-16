@@ -11,12 +11,16 @@ export interface BlogPost {
   reading_time: number | null;
   created_at: string;
   tags?: string[];
+  featured?: boolean;
 }
 
 export interface BlogTag {
   id: string;
   name: string;
   slug: string;
+  description?: string;
+  color?: string;
+  created_at?: string;
 }
 
 export interface BlogFilters {
