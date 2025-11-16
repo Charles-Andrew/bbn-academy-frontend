@@ -396,15 +396,27 @@ export default function BlogsAdminPage() {
                           <div className="flex items-center gap-2">
                             <span>Tags:</span>
                             <div className="flex gap-1">
-                              {post.tags?.slice(0, 3).map((tag) => (
-                                <Badge
-                                  key={tag}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
+                              {post.tags?.slice(0, 3).map((tag, index) => {
+                                // Handle both string and object tag formats
+                                const tagValue =
+                                  typeof tag === "string"
+                                    ? tag
+                                    : (tag as any)?.name || `Tag ${index + 1}`;
+                                const tagKey =
+                                  typeof tag === "string"
+                                    ? tag
+                                    : (tag as any)?.id || `tag-${index}`;
+
+                                return (
+                                  <Badge
+                                    key={tagKey}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {tagValue}
+                                  </Badge>
+                                );
+                              })}
                               {post.tags.length > 3 && (
                                 <Badge variant="outline" className="text-xs">
                                   +{post.tags.length - 3}
