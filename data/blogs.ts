@@ -19,6 +19,17 @@ const isCacheValid = () => {
 // Helper function to update cache
 const updateCache = async () => {
   try {
+    // During build time (static generation), we can't access cookies
+    // so we'll skip cache updates and use empty data
+    const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
+    if (isBuildTime) {
+      console.log("Skipping blog cache update during static generation");
+      cachedPosts = [];
+      cachedTags = [];
+      lastCacheUpdate = Date.now();
+      return;
+    }
+
     const postsResult = await getBlogPostsFromDb(
       { page: 1, limit: 100 }, // Get more posts for better caching
       { status: "published", sortBy: "created_at", sortOrder: "desc" },
@@ -38,11 +49,18 @@ const updateCache = async () => {
   } catch (error) {
     console.error("Error updating blog cache:", error);
     // If cache update fails, don't override existing cache
+    // During build time, set empty cache to prevent repeated attempts
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      cachedPosts = [];
+      cachedTags = [];
+      lastCacheUpdate = Date.now();
+    }
   }
 };
 
-// Initialize cache on module load
-if (!cachedPosts || !cachedTags || !isCacheValid()) {
+// Initialize cache on module load (but not during build time)
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
+if (!isBuildTime && (!cachedPosts || !cachedTags || !isCacheValid())) {
   updateCache();
 }
 
