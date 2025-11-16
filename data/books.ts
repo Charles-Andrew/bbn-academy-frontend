@@ -6,7 +6,8 @@ export const sampleBooks: Book[] = [
     title: "The Digital Renaissance",
     description:
       "A fascinating exploration of how technology is reshaping human creativity and culture in the 21st century.",
-    coverImage: "/images/books/digital-renaissance.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Technology & Culture",
     publishedAt: "2024-01-15",
@@ -25,7 +26,8 @@ export const sampleBooks: Book[] = [
     title: "Echoes of Tomorrow",
     description:
       "A thought-provoking science fiction novel that challenges our understanding of time, consciousness, and what it means to be human.",
-    coverImage: "/images/books/echoes-tomorrow.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Science Fiction",
     publishedAt: "2023-11-20",
@@ -44,7 +46,8 @@ export const sampleBooks: Book[] = [
     title: "The Art of Mindful Living",
     description:
       "A practical guide to finding peace and purpose in our chaotic modern world through ancient wisdom and contemporary science.",
-    coverImage: "/images/books/mindful-living.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Self-Help & Philosophy",
     publishedAt: "2023-08-10",
@@ -63,7 +66,8 @@ export const sampleBooks: Book[] = [
     title: "Code of Life",
     description:
       "Understanding the biological and computational principles that govern life itself, from DNA to artificial intelligence.",
-    coverImage: "/images/books/code-of-life.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Science & Technology",
     publishedAt: "2023-05-30",
@@ -82,7 +86,8 @@ export const sampleBooks: Book[] = [
     title: "Stories of the Silent",
     description:
       "A collection of short stories that give voice to those often unheard, exploring themes of marginalization, resilience, and hope.",
-    coverImage: "/images/books/stories-silent.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Literary Fiction",
     publishedAt: "2024-02-28",
@@ -101,7 +106,8 @@ export const sampleBooks: Book[] = [
     title: "The Last Library",
     description:
       "In a post-digital world, one woman discovers the last physical library and becomes the keeper of humanity's collective memory.",
-    coverImage: "/images/books/last-library.jpg",
+    coverImage:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=center",
     author: "Sarah Chen",
     genre: "Dystopian Fiction",
     publishedAt: "2022-12-15",
@@ -135,3 +141,4 @@ export const getBooksByTag = (tag: string) =>
   sampleBooks.filter((book) =>
     book.tags.some((t) => t.toLowerCase() === tag.toLowerCase()),
   );
+export const getBookSlugs = () => sampleBooks.map((book) => book.id);

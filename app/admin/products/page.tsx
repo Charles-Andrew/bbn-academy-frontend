@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ProductsAdminPage() {
   return (
@@ -27,7 +27,8 @@ export default function ProductsAdminPage() {
               Products Management Coming Soon
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Full CRUD operations for products will be available in the next update.
+              Full CRUD operations for products will be available in the next
+              update.
             </p>
           </div>
         </CardContent>

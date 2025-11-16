@@ -30,9 +30,7 @@ export default async function AdminLayout({
             <Sidebar />
           </div>
           <main className="flex-1 rounded-3xl border border-border/50 bg-card p-6 shadow-2xl overflow-hidden flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto">
-              {children}
-            </div>
+            <div className="flex-1 overflow-y-auto">{children}</div>
           </main>
         </div>
       </div>

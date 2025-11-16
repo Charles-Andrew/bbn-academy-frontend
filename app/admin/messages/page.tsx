@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { Eye, EyeOff, MessageCircle, Reply, Search } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type ContactMessage } from "@/types/contact";
-import { MessageCircle, Search, Eye, EyeOff, Reply } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { ContactMessage } from "@/types/contact";
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -23,11 +23,7 @@ export default function MessagesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("contact_messages")
@@ -41,9 +37,16 @@ export default function MessagesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const updateMessageStatus = async (messageId: string, status: "unread" | "read" | "replied") => {
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
+  const updateMessageStatus = async (
+    messageId: string,
+    status: "unread" | "read" | "replied",
+  ) => {
     try {
       const { error } = await supabase
         .from("contact_messages")
@@ -52,23 +55,22 @@ export default function MessagesPage() {
 
       if (error) throw error;
 
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === messageId ? { ...msg, status } : msg
-        )
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === messageId ? { ...msg, status } : msg)),
       );
     } catch (error) {
       console.error("Error updating message status:", error);
     }
   };
 
-  const filteredMessages = messages.filter(message => {
-    const matchesSearch = 
+  const filteredMessages = messages.filter((message) => {
+    const matchesSearch =
       message.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.message.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || message.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || message.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -86,7 +88,7 @@ export default function MessagesPage() {
     }
   };
 
-  const unreadCount = messages.filter(msg => msg.status === "unread").length;
+  const unreadCount = messages.filter((msg) => msg.status === "unread").length;
 
   if (loading) {
     return (
@@ -150,7 +152,10 @@ export default function MessagesPage() {
       <div className="space-y-4">
         {filteredMessages.length > 0 ? (
           filteredMessages.map((message) => (
-            <Card key={message.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={message.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">

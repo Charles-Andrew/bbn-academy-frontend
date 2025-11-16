@@ -1,14 +1,15 @@
-import { Book } from "@/types/book";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Book as BookIcon,
+  Edit,
+  ExternalLink,
+  Eye,
+  MoreHorizontal,
+  Star,
+  StarOff,
+  Trash2,
+} from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,17 +20,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Star, 
-  StarOff,
-  ExternalLink,
-  Eye
-} from "lucide-react";
-import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import type { Book } from "@/types/book";
 
 interface BookCardProps {
   book: Book;
@@ -39,18 +41,48 @@ interface BookCardProps {
   onView: (book: Book) => void;
 }
 
-export function BookCard({ 
-  book, 
-  onEdit, 
-  onDelete, 
+export function BookCard({
+  book,
+  onEdit,
+  onDelete,
   onToggleFeatured,
-  onView 
+  onView,
 }: BookCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageRetries, setImageRetries] = useState(0);
+  const { promise } = useToast();
 
   const handleDelete = () => {
-    onDelete(book.id);
-    setDeleteDialogOpen(false);
+    promise(
+      (async () => {
+        const response = await fetch(`/api/admin/books/${book.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage =
+            errorData.error || errorData.details || "Failed to delete book";
+          throw new Error(errorMessage);
+        }
+
+        // Call the parent's onDelete function to update local state
+        onDelete(book.id);
+        setDeleteDialogOpen(false);
+
+        return { deleted: true, bookTitle: book.title };
+      })(),
+      {
+        loading: "Deleting book...",
+        success: (result) => `"${result.bookTitle}" deleted successfully!`,
+        error: (err) => {
+          const errorMessage =
+            err instanceof Error ? err.message : "Failed to delete book";
+          return errorMessage;
+        },
+      },
+    );
   };
 
   const formatPrice = (price?: number) => {
@@ -61,6 +93,24 @@ export function BookCard({
     }).format(price);
   };
 
+  const handleImageError = () => {
+    console.error(
+      `Failed to load image for book "${book.title}": ${book.coverImage}`,
+    );
+    if (imageRetries < 2) {
+      // Retry loading the image up to 2 times
+      setTimeout(
+        () => {
+          setImageRetries((prev) => prev + 1);
+          setImageError(false);
+        },
+        1000 * (imageRetries + 1),
+      ); // Exponential backoff
+    } else {
+      setImageError(true);
+    }
+  };
+
   return (
     <>
       <Card className="hover:shadow-lg transition-shadow duration-200">
@@ -69,17 +119,20 @@ export function BookCard({
             <div className="flex gap-3 flex-1 min-w-0">
               {/* Book Cover */}
               <div className="relative w-16 h-20 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
-                {book.coverImage ? (
+                {book.coverImage && !imageError ? (
                   <Image
+                    key={imageRetries} // Force re-render on retry
                     src={book.coverImage}
-                    alt={book.title}
+                    alt={`${book.title} book cover`}
                     fill
                     className="object-cover"
                     sizes="64px"
+                    onError={handleImageError}
+                    priority={false}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-8 h-8 bg-gray-200 rounded" />
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <BookIcon className="w-6 h-6 text-gray-400" />
                   </div>
                 )}
               </div>
@@ -111,11 +164,7 @@ export function BookCard({
             {/* Actions */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -174,16 +223,10 @@ export function BookCard({
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
             {book.description}
           </p>
-          
+
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
-            <span>
-              Published: {new Date(book.publishedAt).getFullYear()}
-            </span>
-            {book.isbn && (
-              <span className="font-mono">
-                ISBN: {book.isbn}
-              </span>
-            )}
+            <span>Published: {new Date(book.publishedAt).getFullYear()}</span>
+            {book.isbn && <span className="font-mono">ISBN: {book.isbn}</span>}
           </div>
 
           {book.tags.length > 0 && (
@@ -213,7 +256,7 @@ export function BookCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Book</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{book.title}" by {book.author}? 
+              Are you sure you want to delete "{book.title}" by {book.author}?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
