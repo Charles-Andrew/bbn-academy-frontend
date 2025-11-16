@@ -52,19 +52,19 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.471 0.13 220.7); /* Converted from hsl(221.2, 83.2%, 53.3%) */
+  --primary: oklch(0.335 0.094 259.8); /* #163566 - Dark Blue */
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.96 0 0);
+  --secondary: oklch(0.75 0.15 85); /* #FDE047 - Bright Yellow */
   --secondary-foreground: oklch(0.145 0 0);
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.46 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.145 0 0);
+  --accent: oklch(0.75 0.15 85); /* #FDE047 - Bright Yellow */
+  --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.91 0 0);
   --input: oklch(0.91 0 0);
-  --ring: oklch(0.471 0.13 220.7);
+  --ring: oklch(0.335 0.094 259.8); /* #163566 - Dark Blue */
 }
 
 .dark {
@@ -74,19 +74,19 @@
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.646 0.222 220.7); /* Converted from hsl(217.2, 91.2%, 59.8%) */
+  --primary: oklch(0.485 0.122 259.8); /* Lighter version of #163566 for dark mode */
   --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
+  --secondary: oklch(0.65 0.12 85); /* Darker version of yellow for dark mode */
   --secondary-foreground: oklch(0.98 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.57 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.504 0.202 27.325); /* Converted from hsl(0, 62.8%, 30.6%) */
+  --accent: oklch(0.65 0.12 85); /* Darker version of yellow for dark mode */
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: oklch(0.504 0.202 27.325);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
-  --ring: oklch(0.646 0.222 220.7);
+  --ring: oklch(0.485 0.122 259.8); /* Lighter version of #163566 for dark mode */
 }
 
 @layer base {
