@@ -1,0 +1,617 @@
+"use client";
+
+import {
+  BookOpen,
+  Search,
+  Grid,
+  List,
+  ArrowUpDown,
+  X,
+  Loader2,
+  Star,
+  Heart,
+  Share2,
+  ExternalLink,
+} from "lucide-react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { MainLayout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MotionFadeIn } from "@/components/ui/motion-fade-in";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { Database } from "@/lib/supabase/types";
+
+type Book = Database["public"]["Tables"]["books"]["Row"];
+
+type ViewMode = "grid" | "list";
+type SortOption = "created_at" | "title" | "author" | "price" | "published_at";
+
+type FetchBooksOptions = {
+  page?: number;
+  resetPage?: boolean;
+};
+
+const sortOptions = [
+  { value: "created_at", label: "Newest First" },
+  { value: "published_at", label: "Published Date" },
+  { value: "title", label: "Title A-Z" },
+  { value: "author", label: "Author Name" },
+  { value: "price", label: "Price: Low to High" },
+];
+
+export default function BooksPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [books, setBooks] = useState<Book[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+
+  const limit = 20;
+  const ongoingRequestRef = useRef<string | null>(null);
+
+  // Fetch genres
+  const fetchGenres = useCallback(async () => {
+    try {
+      const response = await fetch("/api/books/genres");
+      const data = await response.json();
+      if (data.success) {
+        setGenres(data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch genres:", err);
+    }
+  }, []);
+
+  // Fetch books with filters
+  const fetchBooks = useCallback(
+    async ({ page: requestedPage = 1, resetPage = false }: FetchBooksOptions = {}) => {
+      const currentPage = resetPage ? 1 : requestedPage;
+      const requestKey = `${searchQuery}-${selectedGenre}-${sortBy}-${sortOrder}-${currentPage}`;
+
+      if (ongoingRequestRef.current === requestKey) {
+        return;
+      }
+
+      const controller = new AbortController();
+      ongoingRequestRef.current = requestKey;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: limit.toString(),
+          sortBy,
+          sortOrder,
+        });
+
+        if (searchQuery) params.append("search", searchQuery);
+        if (selectedGenre && selectedGenre !== "all")
+          params.append("genre", selectedGenre);
+
+        const response = await fetch(`/api/books?${params}`, {
+          signal: controller.signal,
+        });
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          setBooks((prev) =>
+            resetPage || currentPage === 1
+              ? data.data || []
+              : [...prev, ...(data.data || [])],
+          );
+          setHasMore(currentPage * limit < (data.totalCount || 0));
+          setTotalBooks(data.totalCount || 0);
+          setPage(currentPage);
+        } else {
+          throw new Error(data.error || "Failed to fetch books");
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("Failed to fetch books:", err);
+          setError(err.message);
+        } else if (!(err instanceof Error)) {
+          console.error("Failed to fetch books:", err);
+          setError("Failed to fetch books");
+        }
+      } finally {
+        setLoading(false);
+        if (ongoingRequestRef.current === requestKey) {
+          ongoingRequestRef.current = null;
+        }
+      }
+    },
+    [searchQuery, selectedGenre, sortBy, sortOrder, limit],
+  );
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchGenres();
+    fetchBooks({ resetPage: true, page: 1 });
+  }, [fetchGenres, fetchBooks]);
+
+  // Refetch books when filters change (debounced)
+  const hasInitializedFilters = useRef(false);
+  useEffect(() => {
+    if (!hasInitializedFilters.current) {
+      hasInitializedFilters.current = true;
+      return;
+    }
+
+    setError(null);
+
+    const timer = setTimeout(() => {
+      fetchBooks({ resetPage: true, page: 1 });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedGenre, sortBy, sortOrder, fetchBooks]);
+
+  // Load more books
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      fetchBooks({ page: nextPage });
+    }
+  }, [loading, hasMore, page, fetchBooks]);
+
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setSearchQuery("");
+    setSelectedGenre("all");
+    setSortBy("created_at");
+    setSortOrder("desc");
+    setPage(1);
+  }, []);
+
+  // Toggle wishlist
+  const toggleWishlist = useCallback((bookId: string) => {
+    setWishlist((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(bookId)) {
+        newSet.delete(bookId);
+      } else {
+        newSet.add(bookId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Share book
+  const shareBook = useCallback(async (book: Book) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: book.title,
+          text: book.description,
+          url: `${window.location.origin}/books/${book.id}`,
+        });
+      } catch (err) {
+        console.log("Share cancelled:", err);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(
+        `${window.location.origin}/books/${book.id}`,
+      );
+    }
+  }, []);
+
+  // Calculate statistics
+  const featuredBooksCount = useMemo(() => {
+    return books.filter((book) => book.featured).length;
+  }, [books]);
+
+  const BookCard = React.memo(({ book }: { book: Book }) => (
+    <MotionFadeIn
+      className={cn(viewMode === "grid" ? "w-full" : "w-full")}
+    >
+      <Card
+        className={cn(
+          "group hover:shadow-lg transition-all duration-300 hover:-translate-y-1",
+          viewMode === "list" && "flex",
+        )}
+      >
+        <div
+          className={cn(
+            "relative overflow-hidden",
+            viewMode === "grid" ? "aspect-[3/4]" : "w-32 h-48 flex-shrink-0",
+          )}
+        >
+          {book.cover_image ? (
+            <img
+              src={book.cover_image}
+              alt={book.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <BookOpen className="w-12 h-12 text-muted-foreground" />
+            </div>
+          )}
+
+          {book.featured && (
+            <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+              <Star className="w-3 h-3 mr-1" />
+              Featured
+            </Badge>
+          )}
+
+          <div className="absolute top-2 right-2 flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 w-8 p-0 bg-background/80 hover:bg-background"
+              onClick={() => toggleWishlist(book.id)}
+            >
+              <Heart
+                className={cn(
+                  "w-4 h-4",
+                  wishlist.has(book.id) && "fill-red-500 text-red-500",
+                )}
+              />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 w-8 p-0 bg-background/80 hover:bg-background"
+              onClick={() => shareBook(book)}
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            "p-4 flex flex-col",
+            viewMode === "grid" ? "" : "flex-1",
+          )}
+        >
+          <CardHeader className="p-0 pb-2">
+            <div className="text-sm text-muted-foreground">{book.genre}</div>
+            <h3
+              className={cn(
+                "font-semibold group-hover:text-primary transition-colors",
+                viewMode === "grid" ? "text-lg line-clamp-2" : "text-xl",
+              )}
+            >
+              {book.title}
+            </h3>
+            <div className="text-sm text-muted-foreground">
+              by {book.author}
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0 flex-1">
+            <p
+              className={cn(
+                "text-muted-foreground line-clamp-2",
+                viewMode === "grid" ? "text-sm" : "text-base",
+              )}
+            >
+              {book.description}
+            </p>
+
+            {book.tags && book.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {book.tags.slice(0, 3).map((tag, index) => (
+                  <Badge
+                    key={`${book.id}-tag-${index}`}
+                    variant="secondary"
+                    className="text-xs"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {book.tags.length > 3 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{book.tags.length - 3}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+
+          <CardFooter className="p-0 pt-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {book.price && (
+                <span className="text-lg font-bold text-primary">
+                  ${book.price.toFixed(2)}
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" asChild>
+                <a href={`/books/${book.id}`}>View Details</a>
+              </Button>
+              {book.purchase_url && (
+                <Button size="sm" asChild>
+                  <a
+                    href={book.purchase_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Buy Now
+                    <ExternalLink className="w-3 h-3 ml-1" />
+                  </a>
+                </Button>
+              )}
+            </div>
+          </CardFooter>
+        </div>
+      </Card>
+    </MotionFadeIn>
+  ));
+
+  const LoadingSkeleton = () => (
+    <div
+      className={cn(
+        "animate-pulse",
+        viewMode === "grid" ? "w-full" : "w-full flex",
+      )}
+    >
+      <div
+        className={cn(
+          "bg-muted rounded-lg overflow-hidden",
+          viewMode === "grid" ? "" : "flex",
+        )}
+      >
+        <div
+          className={cn(
+            "bg-muted/50",
+            viewMode === "grid" ? "aspect-[3/4]" : "w-32 h-48 flex-shrink-0",
+          )}
+        />
+
+        <div
+          className={cn(
+            "p-4 space-y-3 flex-1",
+            viewMode === "grid" ? "" : "flex flex-col justify-between",
+          )}
+        >
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-9 w-20" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <MainLayout>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <BookOpen className="w-10 h-10 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+              All Books
+            </h1>
+          </div>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explore our complete collection of books covering technology,
+            philosophy, science fiction, and more. Find your next great read.
+          </p>
+        </div>
+
+        {/* Filters Bar */}
+        <Card className="p-6 mb-8">
+          <div className="space-y-4">
+            {/* Search and Primary Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search books, authors, tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Genres" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genres</SelectItem>
+                  {genres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>
+                      {genre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex gap-2">
+                <Select
+                  value={sortBy}
+                  onValueChange={(value: SortOption) => setSortBy(value)}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+                  }
+                  title={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            </div>
+
+            {/* Secondary Controls */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {books.length} of {totalBooks} books
+                {featuredBooksCount > 0 && ` (${featuredBooksCount} featured)`}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">View:</span>
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <Grid className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Books Display */}
+        {error ? (
+          <div className="text-center py-12">
+            <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Unable to load books
+            </h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => fetchBooks(true, false)}>Try Again</Button>
+          </div>
+        ) : books.length > 0 || (loading && books.length === 0) ? (
+          <>
+            {/* Show loading state only on first load */}
+            {loading && books.length === 0 ? (
+              <div
+                className={cn(
+                  "gap-6",
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    : "flex flex-col",
+                )}
+              >
+                {Array.from({ length: 8 }, (_, i) => (
+                  <LoadingSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "gap-6",
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    : "flex flex-col",
+                )}
+              >
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} />
+                ))}
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {hasMore && books.length > 0 && (
+              <div className="text-center mt-12">
+                <Button
+                  onClick={loadMore}
+                  disabled={loading}
+                  size="lg"
+                  className="min-w-32"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Load More Books"
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
+        ) : !loading && books.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No books found
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Try adjusting your search criteria or browse all books.
+            </p>
+            <Button onClick={clearFilters}>Clear Filters</Button>
+          </div>
+        ) : null}
+      </div>
+    </MainLayout>
+  );
+}
