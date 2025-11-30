@@ -8,7 +8,6 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -20,6 +19,8 @@ import { Label } from "@/components/ui/label";
 interface ImageManagerProps {
   images: string[];
   onChange: (images: string[]) => void;
+  files: File[];
+  onFilesChange: (files: File[]) => void;
   maxImages?: number;
   className?: string;
 }
@@ -27,19 +28,17 @@ interface ImageManagerProps {
 export function ImageManager({
   images,
   onChange,
+  files,
+  onFilesChange,
   maxImages = 10,
   className,
 }: ImageManagerProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const uploadImage = useCallback(
-    async (file: File) => {
-      setIsUploading(true);
+  const addFile = useCallback(
+    (file: File) => {
       setError(null);
-      setUploadProgress(0);
 
       try {
         // Check file size
@@ -48,98 +47,76 @@ export function ImageManager({
         }
 
         // Check file type
-        if (!file.type.startsWith("image/")) {
-          throw new Error("File must be an image");
+        if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+          throw new Error("File must be an image or video");
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("alt", file.name);
-
-        // Create upload progress simulation
-        const progressInterval = setInterval(() => {
-          setUploadProgress((prev) => {
-            if (prev >= 90) {
-              clearInterval(progressInterval);
-              return 90;
-            }
-            return prev + 10;
-          });
-        }, 100);
-
-        const response = await fetch("/api/admin/engagements/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Upload failed");
-        }
-
-        const data = await response.json();
-        const newImages = [...images, data.url];
-        onChange(newImages);
-        toast.success("Image uploaded successfully");
+        const newFiles = [...files, file];
+        onFilesChange(newFiles);
+        toast.success(`${file.type.startsWith("video/") ? "Video" : "Image"} added successfully`);
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Upload failed";
+          error instanceof Error ? error.message : "Failed to add file";
         setError(errorMessage);
         toast.error(errorMessage);
-      } finally {
-        setIsUploading(false);
-        setUploadProgress(0);
       }
     },
-    [images, onChange],
+    [files, onFilesChange],
   );
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       setError(null);
       if (acceptedFiles.length > 0) {
-        const filesToAdd = acceptedFiles.slice(0, maxImages - images.length);
+        const filesToAdd = acceptedFiles.slice(0, maxImages - files.length);
         if (filesToAdd.length < acceptedFiles.length) {
           toast.warning(
-            `Only ${maxImages - images.length} images will be uploaded (maximum ${maxImages} images)`,
+            `Only ${maxImages - files.length} files will be added (maximum ${maxImages} files)`,
           );
         }
 
         filesToAdd.forEach((file) => {
-          uploadImage(file);
+          addFile(file);
         });
       }
     },
-    [uploadImage, images.length, maxImages],
+    [addFile, files.length, maxImages],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [] },
+    accept: { 
+      "image/*": [],
+      "video/*": []
+    },
     maxSize: 10 * 1024 * 1024, // 10MB
     multiple: true,
     onDragEnter: () => setDragActive(true),
     onDragLeave: () => setDragActive(false),
-    disabled: images.length >= maxImages,
+    disabled: files.length >= maxImages,
   });
 
   const handleRemoveImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    onChange(newImages);
-    toast.success("Image removed");
+    // Check if this is a newly added file or existing image
+    if (index < files.length) {
+      // Remove from files
+      const newFiles = files.filter((_, i) => i !== index);
+      onFilesChange(newFiles);
+      toast.success("File removed");
+    } else {
+      // Remove from existing images
+      const imageIndex = index - files.length;
+      const newImages = images.filter((_, i) => i !== imageIndex);
+      onChange(newImages);
+      toast.success("Image removed");
+    }
   };
 
-  const handleAddUrl = (url: string) => {
-    if (url && images.length < maxImages) {
-      const newImages = [...images, url];
-      onChange(newImages);
-      toast.success("Image added");
-    } else if (images.length >= maxImages) {
-      toast.error(`Maximum ${maxImages} images allowed`);
+  const createFilePreview = (file: File): string => {
+    if (file.type.startsWith("video/")) {
+      return URL.createObjectURL(file);
     }
+    return URL.createObjectURL(file);
   };
 
   const moveImage = (fromIndex: number, toIndex: number) => {
@@ -149,80 +126,166 @@ export function ImageManager({
     onChange(newImages);
   };
 
+  const moveFile = (fromIndex: number, toIndex: number) => {
+    const newFiles = [...files];
+    const [movedFile] = newFiles.splice(fromIndex, 1);
+    newFiles.splice(toIndex, 0, movedFile);
+    onFilesChange(newFiles);
+  };
+
+  // Total media count = existing images + new files
+  const totalMediaCount = images.length + files.length;
+
   return (
     <div className={`space-y-4 ${className}`}>
       <Label>Engagement Images</Label>
       <p className="text-sm text-muted-foreground">
-        Add up to {maxImages} images to showcase your engagement
+        Upload up to {maxImages} images to showcase your engagement. Files will be uploaded when you submit the form.
       </p>
+
+      {/* New Files (not yet uploaded) */}
+      {files.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+            New Files ({files.length}) - Will be uploaded on submit
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {files.map((file, index) => {
+              const previewUrl = createFilePreview(file);
+              const isVideo = file.type.startsWith("video/");
+
+              return (
+                <Card key={`new-file-${index}`} className="relative group border-blue-200 dark:border-blue-800">
+                  <CardContent className="p-2">
+                    <div className="relative aspect-square">
+                      {isVideo ? (
+                        <video
+                          src={previewUrl}
+                          controls
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      ) : (
+                        <img
+                          src={previewUrl}
+                          alt={`New file ${index + 1}`}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleRemoveImage(index)}
+                          className="mr-2"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        {files.length > 1 && (
+                          <div className="flex gap-1">
+                            {index > 0 && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => moveFile(index, index - 1)}
+                              >
+                                ←
+                              </Button>
+                            )}
+                            {index < files.length - 1 && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => moveFile(index, index + 1)}
+                              >
+                                →
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground truncate">
+                      {file.name}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Existing Images */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((image, index) => (
-            <Card key={`image-${image.slice(-8)}`} className="relative group">
-              <CardContent className="p-2">
-                <div className="relative aspect-square">
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    className="object-cover rounded-md"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRemoveImage(index)}
-                      className="mr-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    {images.length > 1 && (
-                      <div className="flex gap-1">
-                        {index > 0 && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => moveImage(index, index - 1)}
-                          >
-                            ←
-                          </Button>
-                        )}
-                        {index < images.length - 1 && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => moveImage(index, index + 1)}
-                          >
-                            →
-                          </Button>
-                        )}
-                      </div>
+        <div className="space-y-2">
+          <p className="text-sm font-medium">
+            Existing Images ({images.length})
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+              <Card key={`existing-img-${index}`} className="relative group">
+                <CardContent className="p-2">
+                  <div className="relative aspect-square">
+                    {image.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+                      <video
+                        src={image}
+                        controls
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    ) : (
+                      <img
+                        src={image}
+                        alt={`Engagement media ${index + 1}`}
+                        className="w-full h-full object-cover rounded-md"
+                        loading="lazy"
+                      />
                     )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveImage(files.length + index)}
+                        className="mr-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      {images.length > 1 && (
+                        <div className="flex gap-1">
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => moveImage(index, index - 1)}
+                            >
+                              ←
+                            </Button>
+                          )}
+                          {index < images.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => moveImage(index, index + 1)}
+                            >
+                              →
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-2">
-                  <Input
-                    value={image}
-                    onChange={(e) => {
-                      const newImages = [...images];
-                      newImages[index] = e.target.value;
-                      onChange(newImages);
-                    }}
-                    placeholder="Image URL"
-                    className="text-xs"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Upload Area */}
-      {images.length < maxImages && (
+      {totalMediaCount < maxImages && (
         <div className="space-y-4">
           <Card
             {...getRootProps()}
@@ -232,80 +295,32 @@ export function ImageManager({
                 : isDragActive
                   ? "border-primary bg-primary/5"
                   : "border-muted-foreground/25 hover:border-muted-foreground/50"
-            } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
+            }`}
           >
             <CardContent className="p-8 text-center">
               <input {...getInputProps()} />
-              {isUploading ? (
-                <div className="space-y-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Uploading image...</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {uploadProgress}%
-                    </p>
-                  </div>
+              <div className="space-y-4">
+                <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto" />
+                <div className="space-y-2">
+                  <p className="text-lg font-medium">
+                    {totalMediaCount === 0
+                      ? "Add engagement images"
+                      : "Add more images"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Drag and drop images here, or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, GIF, WebP, MP4, WebM up to 10MB each. Files will be uploaded when you submit the form.
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto" />
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium">
-                      {images.length === 0
-                        ? "Add engagement images"
-                        : "Add more images"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Drag and drop images here, or click to browse
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PNG, JPG, GIF, WebP up to 10MB each
-                    </p>
-                  </div>
-                  <Button type="button" variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Choose Images
-                  </Button>
-                </div>
-              )}
+                <Button type="button" variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Choose Images
+                </Button>
+              </div>
             </CardContent>
           </Card>
-
-          {/* URL Input */}
-          <div className="space-y-2">
-            <Label htmlFor="image-url">Or add image URL directly</Label>
-            <div className="flex gap-2">
-              <Input
-                id="image-url"
-                placeholder="https://example.com/image.jpg"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleAddUrl((e.target as HTMLInputElement).value);
-                    (e.target as HTMLInputElement).value = "";
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const input = document.getElementById(
-                    "image-url",
-                  ) as HTMLInputElement;
-                  handleAddUrl(input.value);
-                  input.value = "";
-                }}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
 
           {/* Error Display */}
           {error && (
@@ -319,7 +334,7 @@ export function ImageManager({
 
       {/* Helper Text */}
       <div className="text-xs text-muted-foreground">
-        {images.length} of {maxImages} images used
+        {totalMediaCount} of {maxImages} images used
       </div>
     </div>
   );

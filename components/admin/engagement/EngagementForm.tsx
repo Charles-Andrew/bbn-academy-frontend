@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Loader2, Save } from "lucide-react";
+import { FileText, Loader2, Save, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -49,6 +49,22 @@ const engagementFormSchema = z.object({
     "event",
   ]),
   description: z.string().min(10, "Description must be at least 10 characters"),
+  date: z
+    .string()
+    .optional()
+    .transform((val) => {
+      // Allow empty string for optional dates
+      if (!val || val.trim() === "") {
+        return undefined;
+      }
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        return undefined; // Silently handle invalid dates
+      }
+      return val;
+    })
+    .or(z.literal(undefined)),
+  featured: z.boolean().default(false),
   images: z.array(z.string().url()),
 });
 
@@ -116,6 +132,7 @@ export function EngagementForm({
 }: EngagementFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const form = useForm<EngagementFormData>({
     resolver: zodResolver(engagementFormSchema),
@@ -123,6 +140,8 @@ export function EngagementForm({
       title: "",
       type: "workshop",
       description: "",
+      date: "",
+      featured: false,
       images: [],
     },
   });
@@ -144,6 +163,8 @@ export function EngagementForm({
               title: engagement.title || "",
               type: engagement.type || "workshop",
               description: engagement.description || "",
+              date: engagement.date ? new Date(engagement.date).toISOString().slice(0, 10) : "",
+              featured: engagement.featured || false,
               images: engagement.images || [],
             });
           } else {
@@ -166,13 +187,18 @@ export function EngagementForm({
         title: "",
         type: "workshop",
         description: "",
+        date: "",
+        featured: false,
         images: [],
       });
+      setFiles([]);
     }
   }, [engagementId, isOpen, onClose, form]);
 
   const onSubmit = async (data: EngagementFormData) => {
     setIsSubmitting(true);
+    let uploadToastId: string | number | undefined;
+
     try {
       const url = engagementId
         ? `/api/admin/engagements/${engagementId}`
@@ -180,34 +206,80 @@ export function EngagementForm({
 
       const method = engagementId ? "PUT" : "POST";
 
-      // Format data for API
-      const apiData = {
-        ...data,
-      };
+      // Show uploading toast for files
+      if (files.length > 0) {
+        uploadToastId = toast.loading(`Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`);
+      }
+
+      // Create FormData for submission
+      const formData = new FormData();
+
+      // Add all form fields
+      formData.append("title", data.title);
+      formData.append("slug", data.slug || "");
+      formData.append("type", data.type);
+      formData.append("description", data.description);
+      formData.append("date", data.date || "");
+      formData.append("featured", data.featured ? "true" : "false");
+      formData.append("images", JSON.stringify(data.images || []));
+
+      // Add new files
+      files.forEach((file, index) => {
+        formData.append(`files`, file);
+      });
 
       const response = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(apiData),
+        body: formData,
       });
 
       if (response.ok) {
-        const _result = await response.json();
+        const result = await response.json();
+        
+        // Update toast to show success
+        if (uploadToastId && files.length > 0) {
+          toast.success(`${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully!`, {
+            id: uploadToastId,
+          });
+        }
+
         toast.success(
           engagementId
             ? "Engagement updated successfully"
             : "Engagement created successfully",
         );
+        
+        // Reset form and files after successful submission
+        form.reset({
+          title: "",
+          type: "workshop",
+          description: "",
+          date: "",
+          featured: false,
+          images: [],
+        });
+        setFiles([]);
+        
         onSuccess?.();
         onClose();
       } else {
         const errorData = await response.json();
+        
+        // Dismiss upload toast on error
+        if (uploadToastId) {
+          toast.dismiss(uploadToastId);
+        }
+        
         toast.error(errorData.error || "Failed to save engagement");
       }
     } catch (error) {
       console.error("Error saving engagement:", error);
+      
+      // Dismiss any upload toast on error
+      if (uploadToastId) {
+        toast.dismiss(uploadToastId);
+      }
+      
       toast.error("Failed to save engagement");
     } finally {
       setIsSubmitting(false);
@@ -246,7 +318,7 @@ export function EngagementForm({
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 h-full flex flex-col">
                     {/* Basic Information */}
                     <Card>
                       <CardHeader>
@@ -343,7 +415,71 @@ export function EngagementForm({
                           )}
                         />
 
-                        
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Engagement Date</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    placeholder="Select engagement date"
+                                    className="max-w-xs"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Date when the engagement takes place
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="featured"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Featured Engagement</FormLabel>
+                                <FormControl>
+                                  <div className="flex items-center space-x-4">
+                                    <button
+                                      type="button"
+                                      onClick={() => field.onChange(!field.value)}
+                                      className={`
+                                        relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                        focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                                        ${field.value ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}
+                                      `}
+                                    >
+                                      <span className={`
+                                        inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                        ${field.value ? 'translate-x-6' : 'translate-x-1'}
+                                      `} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => field.onChange(!field.value)}
+                                      className="flex items-center space-x-3 group cursor-pointer"
+                                    >
+                                      {field.value && <Star className="h-4 w-4 text-primary fill-current" />}
+                                      <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                                        {field.value ? 'Featured' : 'Not Featured'}
+                                      </span>
+                                    </button>
+                                  </div>
+                                </FormControl>
+                                <FormDescription>
+                                  Display this engagement prominently on the website homepage
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </CardContent>
                     </Card>
 
@@ -365,6 +501,8 @@ export function EngagementForm({
                                 <ImageManager
                                   images={field.value}
                                   onChange={field.onChange}
+                                  files={files}
+                                  onFilesChange={setFiles}
                                   maxImages={10}
                                 />
                               </FormControl>
@@ -374,40 +512,39 @@ export function EngagementForm({
                         />
                       </CardContent>
                     </Card>
+
+                    {/* Fixed Footer with Buttons - Inside Form */}
+                    <div className="flex-shrink-0 bg-background border-t p-6 pt-4 mt-auto">
+                      <div className="flex justify-end gap-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={onClose}
+                          disabled={isSubmitting}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="min-w-[120px]"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="mr-2 h-4 w-4" />
+                              {engagementId ? "Update" : "Create"} Engagement
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                 </form>
               </Form>
-            </div>
-
-            {/* Fixed Footer with Buttons */}
-            <div className="flex-shrink-0 bg-background border-t p-6 pt-4">
-              <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="min-w-[120px]"
-                  onClick={form.handleSubmit(form.handleSubmit)}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      {engagementId ? "Update" : "Create"} Engagement
-                    </>
-                  )}
-                </Button>
-              </div>
             </div>
           </div>
         )}
