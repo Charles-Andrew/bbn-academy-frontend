@@ -54,7 +54,6 @@ export async function PUT(
         slug: validatedData.slug,
         type: validatedData.type,
         description: validatedData.description,
-        content: validatedData.content,
         images: validatedData.images,
         updated_at: new Date().toISOString(),
       })

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Apply filters
     if (filters.search) {
       query = query.or(
-        `title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,content.ilike.%${filters.search}%`,
+        `title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`,
       );
     }
 
@@ -94,7 +94,6 @@ export async function POST(request: NextRequest) {
         slug: validatedData.slug,
         type: validatedData.type,
         description: validatedData.description,
-        content: validatedData.content,
         images: validatedData.images,
       })
       .select()
