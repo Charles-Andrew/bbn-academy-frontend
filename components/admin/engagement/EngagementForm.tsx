@@ -290,7 +290,7 @@ export function EngagementForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-lg sm:!max-w-xl md:!max-w-2xl lg:!max-w-4xl xl:!max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {engagementId ? "Edit Engagement" : "Create New Engagement"}

@@ -17,9 +17,9 @@ import { MotionFadeIn } from "@/components/ui/motion-fade-in";
 import { getBlogSlugs, getPostBySlug, getRelatedPosts } from "@/data/blogs";
 
 interface BlogPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // SSR: Generate static params for all blog posts at build time
@@ -34,7 +34,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: BlogPageProps): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -57,7 +58,8 @@ export async function generateMetadata({
 }
 
 export default async function BlogPage({ params }: BlogPageProps) {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();

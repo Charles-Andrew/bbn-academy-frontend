@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       slug,
       excerpt: validatedData.excerpt,
       content: validatedData.content,
-      featured_media_id: validatedData.featuredMediaId || null, // Changed from featured_image
+      featured_image: validatedData.featuredMediaId || null, // Use correct database field name
       author_id: authorId,
       published_at:
         validatedData.isPublished && validatedData.publishedAt
@@ -127,9 +127,6 @@ export async function POST(request: NextRequest) {
             : null,
       is_published: validatedData.isPublished,
       reading_time: readingTime,
-      featured: validatedData.featured,
-      seo_title: validatedData.seoTitle,
-      seo_description: validatedData.seoDescription,
     };
 
     // Process tags

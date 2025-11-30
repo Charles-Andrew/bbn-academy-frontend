@@ -17,8 +17,11 @@ export async function createClient() {
     cookieStore = await cookies();
   } catch (error) {
     // This happens during static generation when there's no request context
-    if (isBuildTime) {
-      console.log("Creating Supabase client without cookies during build time");
+    // or during module evaluation at build time
+    if (isBuildTime || process.env.NODE_ENV === "development") {
+      console.log(
+        "Creating Supabase client without cookies (build time or module evaluation)",
+      );
       cookieStore = {
         getAll: () => [],
         set: () => {},
