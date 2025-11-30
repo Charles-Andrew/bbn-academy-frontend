@@ -147,25 +147,39 @@ export const blogPostSchema = z.object({
     .optional(), // Changed from featuredImage
   authorId: z.string().uuid("Invalid author ID").optional(),
   isPublished: z.boolean().default(false),
-  publishedAt: z.string().datetime("Invalid publication date").optional(),
+  publishedAt: z
+    .string()
+    .optional()
+    .transform((val) => {
+      // Allow empty string for drafts
+      if (!val || val.trim() === "") {
+        return undefined;
+      }
+      // Validate date format for published posts
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        return undefined; // Silently handle invalid dates
+      }
+      return val;
+    })
+    .or(z.literal(undefined)),
   readingTime: z
     .number()
     .min(1, "Reading time must be at least 1 minute")
     .max(999, "Reading time cannot exceed 999 minutes")
     .optional(),
+  featured: z.boolean().default(false),
+  seoTitle: z
+    .string()
+    .max(300, "SEO title cannot exceed 300 characters")
+    .optional(),
+  seoDescription: z
+    .string()
+    .max(500, "SEO description cannot exceed 500 characters")
+    .optional(),
   tags: z
     .array(z.string())
     .max(10, "Cannot have more than 10 tags")
     .default([]),
-  featured: z.boolean().default(false),
-  seoTitle: z
-    .string()
-    .max(200, "SEO title cannot exceed 200 characters")
-    .optional(),
-  seoDescription: z
-    .string()
-    .max(300, "SEO description cannot exceed 300 characters")
-    .optional(),
 });
 
 // Blog tag validation schema
@@ -476,6 +490,23 @@ export type BookData = z.infer<typeof bookSchema>;
 export type ServiceData = z.infer<typeof serviceSchema>;
 export type PaginationData = z.infer<typeof paginationSchema>;
 export type BlogPostFormData = z.infer<typeof blogPostSchema>;
+
+// Form-specific type that matches the transformed schema output
+export type BlogPostForm = {
+  title: string;
+  slug?: string;
+  excerpt?: string;
+  content: string;
+  featuredMediaId?: string | null;
+  authorId?: string;
+  isPublished: boolean;
+  publishedAt?: string;
+  readingTime?: number;
+  tags: string[];
+  featured: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+};
 export type BlogTagFormData = z.infer<typeof blogTagSchema>;
 export type BlogFiltersData = z.infer<typeof blogFiltersSchema>;
 export type BlogImageUploadData = z.infer<typeof blogImageUploadSchema>;

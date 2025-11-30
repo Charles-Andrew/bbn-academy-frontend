@@ -10,9 +10,9 @@ import { MotionFadeIn } from "@/components/ui/motion-fade-in";
 import { getProductById, getProductSlugs } from "@/data/products";
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // SSR: Generate static params for all products at build time
@@ -27,7 +27,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const product = getProductById(params.slug);
+  const { slug } = await params;
+  const product = getProductById(slug);
 
   if (!product) {
     return {
@@ -47,8 +48,9 @@ export async function generateMetadata({
   };
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const product = getProductById(params.slug);
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { slug } = await params;
+  const product = getProductById(slug);
 
   if (!product) {
     notFound();
