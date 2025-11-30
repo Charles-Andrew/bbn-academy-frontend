@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@/lib/supabase/error-handler"; // Import global error handler
 import { ThemeProvider } from "@/components/providers";
 import { AppWrapper } from "@/components/providers/app-wrapper";
 import { Toaster } from "@/components/ui/sonner";
