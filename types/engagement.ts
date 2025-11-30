@@ -5,6 +5,8 @@ export interface Engagement {
   type: string;
   description: string;
   images: string[];
+  date: string | null;
+  featured: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +27,8 @@ export interface CreateEngagementData {
   type: EngagementType;
   description: string;
   images?: string[];
+  date?: string;
+  featured?: boolean;
 }
 
 export interface UpdateEngagementData extends Partial<CreateEngagementData> {

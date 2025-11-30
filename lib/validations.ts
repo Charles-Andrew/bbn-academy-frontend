@@ -339,12 +339,12 @@ export const engagementSchema = z.object({
     .max(200, "Engagement title cannot exceed 200 characters"),
   slug: z
     .string()
-    .min(1, "Slug is required")
     .max(200, "Slug cannot exceed 200 characters")
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must contain only lowercase letters, numbers, and hyphens",
     )
+    .nullable()
     .optional(),
   type: z.enum(
     [
@@ -365,6 +365,22 @@ export const engagementSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(2000, "Description cannot exceed 2000 characters"),
+  date: z
+    .string()
+    .optional()
+    .transform((val) => {
+      // Allow empty string for optional dates
+      if (!val || val.trim() === "") {
+        return undefined;
+      }
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        return undefined; // Silently handle invalid dates
+      }
+      return val;
+    })
+    .or(z.literal(undefined)),
+  featured: z.boolean().default(false),
   images: z
     .array(z.string().url("Invalid image URL"))
     .max(10, "Cannot have more than 10 images")
@@ -392,24 +408,30 @@ export const engagementFiltersSchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
-// Engagement image upload validation schema
+// Engagement media upload validation schema (supports images and videos)
 export const engagementImageUploadSchema = z.object({
   file: z
     .instanceof(File)
     .refine(
       (file) => file.size <= 10 * 1024 * 1024, // 10MB
-      "Image size cannot exceed 10MB",
+      "File size cannot exceed 10MB",
     )
     .refine((file) => {
       const allowedTypes = [
+        // Image formats
         "image/jpeg",
         "image/png",
         "image/gif",
         "image/webp",
         "image/svg+xml",
+        // Video formats
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/quicktime",
       ];
       return allowedTypes.includes(file.type);
-    }, "Only JPEG, PNG, GIF, WebP, and SVG images are allowed"),
+    }, "Only images (JPEG, PNG, GIF, WebP, SVG) and videos (MP4, WebM, OGG, MOV) are allowed"),
   alt: z.string().max(200, "Alt text cannot exceed 200 characters").optional(),
 });
 
