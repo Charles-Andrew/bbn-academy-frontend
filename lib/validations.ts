@@ -365,10 +365,6 @@ export const engagementSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(2000, "Description cannot exceed 2000 characters"),
-  content: z
-    .string()
-    .max(10000, "Content cannot exceed 10,000 characters")
-    .optional(),
   images: z
     .array(z.string().url("Invalid image URL"))
     .max(10, "Cannot have more than 10 images")

@@ -1,24 +1,15 @@
 export interface Engagement {
   id: string;
   title: string;
-  slug: string;
-  type: EngagementType;
+  slug: string | null;
+  type: string;
   description: string;
-  content?: string | null;
   images: string[];
   created_at: string;
   updated_at: string;
 }
 
-export type EngagementType =
-  | "webinar"
-  | "workshop"
-  | "training"
-  | "coaching"
-  | "consulting"
-  | "speaking"
-  | "course"
-  | "event";
+export type EngagementType = string;
 
 
 
@@ -33,7 +24,6 @@ export interface CreateEngagementData {
   title: string;
   type: EngagementType;
   description: string;
-  content?: string;
   images?: string[];
 }
 
