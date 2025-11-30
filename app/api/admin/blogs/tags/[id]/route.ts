@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { refreshBlogCache } from "@/data/blogs";
 import {
   deleteBlogTag,
   getBlogTags,
@@ -103,7 +102,6 @@ export async function PUT(
     });
 
     // Refresh cache
-    await refreshBlogCache();
 
     return NextResponse.json({ tag });
   } catch (error) {
@@ -150,7 +148,6 @@ export async function DELETE(
     await deleteBlogTag(tagId);
 
     // Refresh cache
-    await refreshBlogCache();
 
     return NextResponse.json({ success: true });
   } catch (error) {
