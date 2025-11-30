@@ -34,6 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClientOnlySelect } from "@/components/ui/client-only-select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,8 +111,14 @@ export default function BlogsAdminPage() {
     setFormOpen(true);
   };
 
-  const handleFormSuccess = () => {
-    refreshBlogPosts();
+  const handleFormSuccess = async () => {
+    // Only handle the refresh, let form handle its own toasts
+    try {
+      await refreshBlogPosts();
+    } catch (error) {
+      console.error("Error refreshing blog posts:", error);
+      // Don't show error toast here to avoid conflicts with form toasts
+    }
   };
 
   // Handle post actions
@@ -270,38 +277,54 @@ export default function BlogsAdminPage() {
             </div>
 
             {/* Status Filter */}
-            <Select
-              value={blogFilters.status || "all"}
-              onValueChange={handleStatusFilter}
+            <ClientOnlySelect
+              fallback={
+                <div className="w-full lg:w-48 h-9 flex items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm">
+                  Status
+                </div>
+              }
             >
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Posts</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Drafts</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={blogFilters.status || "all"}
+                onValueChange={handleStatusFilter}
+              >
+                <SelectTrigger className="w-full lg:w-48">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Posts</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="draft">Drafts</SelectItem>
+                </SelectContent>
+              </Select>
+            </ClientOnlySelect>
 
             {/* Sort */}
-            <Select
-              value={`${blogFilters.sortBy || "created_at"}-${blogFilters.sortOrder || "desc"}`}
-              onValueChange={handleSortChange}
+            <ClientOnlySelect
+              fallback={
+                <div className="w-full lg:w-48 h-9 flex items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm">
+                  Sort by
+                </div>
+              }
             >
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at-desc">Newest First</SelectItem>
-                <SelectItem value="created_at-asc">Oldest First</SelectItem>
-                <SelectItem value="published_at-desc">
-                  Recently Published
-                </SelectItem>
-                <SelectItem value="title-asc">Title A-Z</SelectItem>
-                <SelectItem value="title-desc">Title Z-A</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={`${blogFilters.sortBy || "created_at"}-${blogFilters.sortOrder || "desc"}`}
+                onValueChange={handleSortChange}
+              >
+                <SelectTrigger className="w-full lg:w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created_at-desc">Newest First</SelectItem>
+                  <SelectItem value="created_at-asc">Oldest First</SelectItem>
+                  <SelectItem value="published_at-desc">
+                    Recently Published
+                  </SelectItem>
+                  <SelectItem value="title-asc">Title A-Z</SelectItem>
+                  <SelectItem value="title-desc">Title Z-A</SelectItem>
+                </SelectContent>
+              </Select>
+            </ClientOnlySelect>
 
             {/* Refresh */}
             <Button
@@ -422,15 +445,17 @@ export default function BlogsAdminPage() {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          window.open(`/blogs/${post.slug}`, "_blank")
-                        }
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      {post.is_published && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            window.open(`/blogs/${post.slug}`, "_blank")
+                          }
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -451,10 +476,16 @@ export default function BlogsAdminPage() {
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </DropdownMenuItem>
+                          {post.is_published && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                window.open(`/blogs/${post.slug}`, "_blank")
+                              }
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-600 dark:text-red-400"

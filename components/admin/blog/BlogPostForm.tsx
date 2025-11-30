@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnimatePresence, motion } from "framer-motion";
-import { Clock, Eye, Loader2, Save, Star } from "lucide-react";
+import { Clock, Eye, Loader2, Save, Upload } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -31,9 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateReadingTime, generateUniqueSlugSync } from "@/lib/blog-utils";
 import { useAdminStore } from "@/store/admin-store";
-import type { BlogMedia, BlogTag } from "@/types/blog";
-import { MediaGallery } from "./MediaGallery";
-import { MediaUploader } from "./MediaUploader";
+import type { BlogTag } from "@/types/blog";
 import { TagSelector } from "./TagSelector";
 
 // Create a form-specific schema that matches our form structure
@@ -42,7 +40,6 @@ const blogPostFormSchema = z.object({
   slug: z.string().optional(),
   excerpt: z.string().optional(),
   content: z.string().min(10, "Blog content must be at least 10 characters"),
-  featuredMediaId: z.string().uuid().nullable().optional(),
   authorId: z.string().uuid().optional(),
   isPublished: z.boolean(),
   publishedAt: z.string().optional(),
@@ -73,29 +70,32 @@ export function BlogPostForm({
   const [isSubmitting, setIsSubmitting] = useState<"draft" | "publish" | false>(
     false,
   );
-  const [_isDrafting, setIsDrafting] = useState(false);
   const [estimatedReadingTime, setEstimatedReadingTime] = useState<
     number | null
   >(null);
-  const [media, setMedia] = useState<BlogMedia[]>([]);
-  const [showMediaUploader, setShowMediaUploader] = useState(false);
-  const [tempPostId, setTempPostId] = useState<string | null>(null);
+  const [featuredMedia, setFeaturedMedia] = useState<File | null>(null);
+  const [currentFeaturedMediaUrl, setCurrentFeaturedMediaUrl] = useState<
+    string | null
+  >(null);
+  const [currentFeaturedMediaType, setCurrentFeaturedMediaType] = useState<
+    "image" | "video" | null
+  >(null);
+  const [_tempPostId, setTempPostId] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { setSelectedBlogPost, refreshBlogPosts } = useAdminStore();
+  const { refreshBlogPosts } = useAdminStore();
 
   const form = useForm<BlogPostFormData>({
     resolver: zodResolver(blogPostFormSchema),
     defaultValues: {
       title: "",
-      slug: undefined,
+      slug: "",
       excerpt: "",
       content: "",
-      featuredMediaId: null, // Changed from featuredImage
-      authorId: undefined,
+      authorId: "",
       isPublished: false,
-      publishedAt: undefined,
-      readingTime: undefined,
+      publishedAt: "",
+      readingTime: 0,
       tags: [],
       featured: false,
       seoTitle: "",
@@ -104,15 +104,15 @@ export function BlogPostForm({
   });
 
   // Function to check if form has changes from initial values
-  const hasFormChanges = useCallback(() => {
+  const _hasFormChanges = useCallback(() => {
     // Disable button while form is resetting
     if (isResetting) return false;
 
     const currentValues = form.getValues();
 
-    // For new posts, check if required fields have values
+    // For new posts, check if title has content (allow draft saving with minimal content)
     if (!postId) {
-      return currentValues.title?.trim() && currentValues.content?.trim();
+      return currentValues.title?.trim().length > 0 || featuredMedia !== null;
     }
 
     // For existing posts, check if any field has changed
@@ -121,19 +121,29 @@ export function BlogPostForm({
       "slug",
       "excerpt",
       "content",
-      "featuredMediaId", // Changed from featuredImage
       "isPublished",
       "publishedAt",
       "tags",
     ];
 
-    return fieldsToCheck.some((field) => {
-      // Use dirty fields as additional check
-      return form.formState.dirtyFields[
-        field as keyof typeof form.formState.dirtyFields
-      ];
-    });
-  }, [postId, form, isResetting]);
+    return (
+      fieldsToCheck.some((field) => {
+        // Use dirty fields as additional check
+        return form.formState.dirtyFields[
+          field as keyof typeof form.formState.dirtyFields
+        ];
+      }) || featuredMedia !== null
+    );
+  }, [postId, form, isResetting, featuredMedia]);
+
+  // Function to check if form is valid for publishing (has required content)
+  const canPublish = useCallback(() => {
+    const currentValues = form.getValues();
+    return (
+      currentValues.title?.trim().length > 0 &&
+      currentValues.content?.trim().length >= 10
+    );
+  }, [form]);
 
   // Function to check slug status - simplified to always show auto-generated
   const getSlugStatus = useCallback(() => {
@@ -149,8 +159,11 @@ export function BlogPostForm({
     return { isAuto: true, message: "Auto-generated from title" };
   }, [form]);
 
-  // Reset form when postId changes
+  // Reset form when postId changes or when dialog opens for new post
   useEffect(() => {
+    // Only reset if dialog is open
+    if (!open) return;
+
     setIsResetting(true);
     const resetForm = async () => {
       // Clear any pending debounce timer
@@ -175,7 +188,7 @@ export function BlogPostForm({
                 slug: post.slug || "",
                 excerpt: post.excerpt || "",
                 content: post.content || "",
-                featuredMediaId: post.featured_image || null, // Use correct database field name
+                featured: post.featured || false,
                 isPublished: post.is_published || false,
                 publishedAt: post.published_at
                   ? new Date(post.published_at).toISOString().slice(0, 10)
@@ -184,7 +197,9 @@ export function BlogPostForm({
               });
 
               setEstimatedReadingTime(post.reading_time);
-              setMedia(post.media || []);
+              setCurrentFeaturedMediaUrl(post.featured_media_url || null);
+              setCurrentFeaturedMediaType(post.featured_media_type || null);
+              setFeaturedMedia(null); // Clear any selected file
             } else {
               toast.error("Failed to load blog post");
             }
@@ -201,13 +216,17 @@ export function BlogPostForm({
           slug: undefined,
           excerpt: "",
           content: "",
-          featuredMediaId: null, // Changed from featuredImage
           isPublished: false,
           publishedAt: undefined,
           tags: [],
+          featured: false,
+          seoTitle: "",
+          seoDescription: "",
         });
         setEstimatedReadingTime(null);
-        setMedia([]);
+        setFeaturedMedia(null);
+        setCurrentFeaturedMediaUrl(null);
+        setCurrentFeaturedMediaType(null);
         setTempPostId(
           `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`,
         );
@@ -218,7 +237,7 @@ export function BlogPostForm({
     };
 
     resetForm();
-  }, [postId, form]);
+  }, [postId, form, open]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -250,217 +269,329 @@ export function BlogPostForm({
   };
 
   // Calculate reading time when content changes
-  const handleContentChange = async (content: string) => {
+  const handleContentChange = (content: string) => {
     form.setValue("content", content);
 
     if (content.trim()) {
       const readingTime = calculateReadingTime(content);
       setEstimatedReadingTime(readingTime);
+      // Also update form value
+      form.setValue("readingTime", readingTime);
     } else {
       setEstimatedReadingTime(null);
+      form.setValue("readingTime", 0);
     }
   };
 
-  // Handle form submission
-  const onSubmit = async (data: BlogPostFormData, isDraft: boolean = false) => {
-    setIsSubmitting(isDraft ? "draft" : "publish");
+  // Handle featured media selection
+  const handleFeaturedMediaChange = (file: File | null) => {
+    if (file) {
+      const isVideo = file.type.startsWith("video/");
+      const isImage = file.type.startsWith("image/");
 
-    try {
-      // If we have temporary media and no postId, we need to create the post first
-      if (!postId && media.length > 0 && tempPostId) {
-        // Create post as draft first to get a proper ID
-        const createData = {
-          ...data,
-          isPublished: false, // Always create as draft first
-        };
-
-        const createResponse = await fetch("/api/admin/blogs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(createData),
-        });
-
-        if (!createResponse.ok) {
-          const errorData = await createResponse.json();
-          throw new Error(errorData.error || "Failed to create blog post");
-        }
-
-        const createResult = await createResponse.json();
-        const newPostId = createResult.post.id;
-
-        // Now update the temporary media with the correct post ID
-        for (const mediaItem of media) {
-          try {
-            await fetch(`/api/admin/blogs/media/${mediaItem.id}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                post_id: newPostId,
-              }),
-            });
-          } catch (error) {
-            console.error("Failed to update media post ID:", error);
-          }
-        }
-
-        // Now update the post with the final publication status
-        const updateData = {
-          ...data,
-          isPublished: !isDraft && data.isPublished,
-        };
-
-        const updateResponse = await fetch(`/api/admin/blogs/${newPostId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateData),
-        });
-
-        if (!updateResponse.ok) {
-          const errorData = await updateResponse.json();
-          throw new Error(errorData.error || "Failed to update blog post");
-        }
-
-        toast.success(
-          `Blog post ${isDraft ? "saved as draft" : "published"} successfully`,
+      // Validate file size
+      if (isVideo && file.size > 25 * 1024 * 1024) {
+        toast.error(
+          `Video file too large: ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum size is 25MB for videos.`,
         );
-      } else {
-        // Normal submission without temporary media
-        const submitData = {
-          ...data,
-          isPublished: !isDraft && data.isPublished,
-        };
-
-        const url = postId ? `/api/admin/blogs/${postId}` : "/api/admin/blogs";
-        const method = postId ? "PUT" : "POST";
-
-        const response = await fetch(url, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(submitData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to save blog post");
-        }
-
-        toast.success(
-          postId
-            ? "Blog post updated successfully"
-            : `Blog post ${isDraft ? "saved as draft" : "published"} successfully`,
-        );
+        return;
       }
 
-      // Refresh blog posts list
-      await refreshBlogPosts();
-
-      // Clear selected post if editing
-      if (postId) {
-        setSelectedBlogPost(null);
+      if (isImage && file.size > 10 * 1024 * 1024) {
+        toast.error(
+          `Image file too large: ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum size is 10MB for images.`,
+        );
+        return;
       }
-
-      // Call success callback
-      onSuccess?.();
-
-      // Close form
-      onOpenChange(false);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to save blog post",
-      );
-    } finally {
-      setIsSubmitting(false);
-      setIsDrafting(false);
-    }
-  };
-
-  // Handle save as draft
-  const handleSaveDraft = async () => {
-    await handleDraftSubmit();
-  };
-
-  // Handle publish
-  const _handlePublish = async () => {
-    const data = form.getValues();
-
-    // Set published date if not already set
-    if (!data.publishedAt) {
-      form.setValue("publishedAt", new Date().toISOString().slice(0, 10));
     }
 
-    await onSubmit({ ...data, isPublished: true }, false);
-  };
-
-  // Handle media upload complete
-  const handleMediaUploadComplete = (uploadedMedia: BlogMedia[]) => {
-    setMedia((prev) => [...prev, ...uploadedMedia]);
-    setShowMediaUploader(false);
-    toast.success(
-      `Successfully uploaded ${uploadedMedia.length} media file(s)`,
-    );
-  };
-
-  // Handle media update
-  const handleMediaUpdate = (mediaId: string, updates: Partial<BlogMedia>) => {
-    setMedia((prev) =>
-      prev.map((item) =>
-        item.id === mediaId ? { ...item, ...updates } : item,
-      ),
-    );
-  };
-
-  // Handle media delete
-  const handleMediaDelete = (mediaId: string) => {
-    setMedia((prev) => prev.filter((item) => item.id !== mediaId));
-    toast.success("Media deleted successfully");
-  };
-
-  // Handle media reorder
-  const handleMediaReorder = (mediaIds: string[]) => {
-    setMedia((prev) => {
-      const mediaMap = new Map(prev.map((item) => [item.id, item]));
-      return mediaIds
-        .map((id) => mediaMap.get(id))
-        .filter(Boolean) as BlogMedia[];
-    });
+    setFeaturedMedia(file);
   };
 
   const watchedTitle = form.watch("title");
   const watchedSlug = form.watch("slug");
   const watchedTags = form.watch("tags");
 
-  const handleFormSubmit = form.handleSubmit((data) => onSubmit(data, false)); // Regular submission (publish)
-  const handleDraftSubmit = form.handleSubmit((data) => onSubmit(data, true)); // Draft submission
+  const handlePublish = async (values: BlogPostFormData) => {
+    setIsSubmitting("publish");
+    let uploadToastId: string | number | undefined;
+
+    try {
+      // Show uploading toast for featured media
+      if (featuredMedia) {
+        const mediaType = featuredMedia.type.startsWith("video/")
+          ? "video"
+          : "image";
+        uploadToastId = toast.loading(`Uploading ${mediaType}...`);
+      }
+
+      // Show creating/updating toast
+      const action = postId ? "Updating" : "Creating";
+      const creationToastId = toast.loading(`${action} blog post...`);
+
+      // Create FormData for submission
+      const formData = new FormData();
+
+      // Add all form fields
+      formData.append("title", values.title);
+      formData.append("slug", values.slug || "");
+      formData.append("excerpt", values.excerpt || "");
+      formData.append("content", values.content);
+      formData.append("authorId", values.authorId || "");
+      formData.append("featured", values.featured ? "true" : "false");
+      formData.append("isPublished", "true");
+      formData.append(
+        "publishedAt",
+        values.publishedAt || new Date().toISOString().slice(0, 10),
+      );
+      formData.append("readingTime", (values.readingTime || 0).toString());
+      formData.append("tags", JSON.stringify(values.tags || []));
+
+      // Add featured media if selected
+      if (featuredMedia) {
+        formData.append("featuredMedia", featuredMedia);
+      }
+
+      const url = postId ? `/api/admin/blogs/${postId}` : "/api/admin/blogs";
+      const method = postId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to ${postId ? "update" : "publish"} post`,
+        );
+      }
+
+      // Update toasts to show success
+      if (uploadToastId && featuredMedia) {
+        const mediaType = featuredMedia.type.startsWith("video/")
+          ? "Video"
+          : "Image";
+        toast.success(`${mediaType} uploaded successfully!`, {
+          id: uploadToastId,
+        });
+      }
+
+      toast.success(`Post ${postId ? "updated" : "published"} successfully!`, {
+        id: creationToastId,
+      });
+
+      // Refresh blog posts list and wait for completion
+      await refreshBlogPosts();
+
+      // Call success callback
+      onSuccess?.();
+
+      // Reset form for new post if this was a create operation
+      if (!postId) {
+        setTimeout(async () => {
+          await form.reset({
+            title: "",
+            slug: undefined,
+            excerpt: "",
+            content: "",
+            isPublished: false,
+            publishedAt: undefined,
+            tags: [],
+            featured: false,
+            seoTitle: "",
+            seoDescription: "",
+          });
+          setEstimatedReadingTime(null);
+          setFeaturedMedia(null);
+          setCurrentFeaturedMediaUrl(null);
+          setCurrentFeaturedMediaType(null);
+        }, 50);
+      }
+
+      // Close form after a short delay
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 100);
+    } catch (error) {
+      console.error("Blog post submission error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to publish post";
+
+      // Dismiss any loading toasts
+      if (uploadToastId) {
+        toast.dismiss(uploadToastId);
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleSaveDraft = async (values: BlogPostFormData) => {
+    setIsSubmitting("draft");
+    let uploadToastId: string | number | undefined;
+
+    try {
+      // Show uploading toast for featured media
+      if (featuredMedia) {
+        const mediaType = featuredMedia.type.startsWith("video/")
+          ? "video"
+          : "image";
+        uploadToastId = toast.loading(`Uploading ${mediaType}...`);
+      }
+
+      // Show saving draft toast
+      const draftToastId = toast.loading("Saving draft...");
+
+      // Create FormData for draft submission
+      const formData = new FormData();
+
+      // Add all form fields
+      formData.append("title", values.title || "");
+      formData.append("slug", values.slug || "");
+      formData.append("excerpt", values.excerpt || "");
+      formData.append("content", values.content || "Draft content");
+      formData.append("authorId", values.authorId || "");
+      formData.append("featured", values.featured ? "true" : "false");
+      formData.append("isPublished", "false");
+      formData.append("publishedAt", "");
+      formData.append("readingTime", "1"); // Minimum 1 for validation
+      formData.append("tags", JSON.stringify(values.tags || []));
+
+      // Add featured media if selected
+      if (featuredMedia) {
+        formData.append("featuredMedia", featuredMedia);
+      }
+
+      const url = postId ? `/api/admin/blogs/${postId}` : "/api/admin/blogs";
+      const method = postId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to save draft`);
+      }
+
+      // Update toasts to show success
+      if (uploadToastId && featuredMedia) {
+        const mediaType = featuredMedia.type.startsWith("video/")
+          ? "Video"
+          : "Image";
+        toast.success(`${mediaType} uploaded successfully!`, {
+          id: uploadToastId,
+        });
+      }
+
+      toast.success(`Draft ${postId ? "updated" : "saved"} successfully!`, {
+        id: draftToastId,
+      });
+
+      // Refresh blog posts list and wait for completion
+      await refreshBlogPosts();
+
+      // Call success callback
+      onSuccess?.();
+
+      // Reset form for new post if this was a create operation
+      if (!postId) {
+        setTimeout(async () => {
+          await form.reset({
+            title: "",
+            slug: undefined,
+            excerpt: "",
+            content: "",
+            isPublished: false,
+            publishedAt: undefined,
+            tags: [],
+            featured: false,
+            seoTitle: "",
+            seoDescription: "",
+          });
+          setEstimatedReadingTime(null);
+          setFeaturedMedia(null);
+          setCurrentFeaturedMediaUrl(null);
+          setCurrentFeaturedMediaType(null);
+        }, 50);
+      }
+
+      // Close form after a short delay
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 100);
+    } catch (error) {
+      console.error("Draft save error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save draft";
+
+      // Dismiss any loading toasts
+      if (uploadToastId) {
+        toast.dismiss(uploadToastId);
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Form submission wrapper that determines which action to take
+  const _onFormSubmit = async (values: BlogPostFormData) => {
+    console.log("🔍 Form submission started with values:", values);
+    console.log("🔍 Form errors:", form.formState.errors);
+    console.log("🔍 Featured field value:", values.featured);
+    console.log("🔍 isPublished field value:", values.isPublished);
+
+    // Use form's isPublished field to determine action
+    if (values.isPublished) {
+      await handlePublish(values);
+    } else {
+      await handleSaveDraft(values);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-5xl max-h-[90vh] flex flex-col"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        // Prevent closing while submitting
+        if (isSubmitting) return;
+        onOpenChange(isOpen);
+      }}
+    >
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
         <DialogHeader className="pb-4 border-b">
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
             {postId ? "Edit Blog Post" : "Create New Blog Post"}
+            {isSubmitting && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {isSubmitting === "draft"
+                  ? "Saving draft..."
+                  : isSubmitting === "publish"
+                    ? "Publishing..."
+                    : "Processing..."}
+              </div>
+            )}
           </DialogTitle>
           <DialogDescription>
-            {postId
-              ? "Update your blog post details, content, and settings."
-              : "Fill in the details below to create a new blog post."}
+            {isSubmitting
+              ? "Please wait while we process your blog post..."
+              : postId
+                ? "Update your blog post details, content, and settings."
+                : "Fill in the details below to create a new blog post."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div
+          className={`flex-1 overflow-y-auto py-4 ${isSubmitting ? "opacity-75 pointer-events-none" : ""}`}
+        >
           <Form {...form}>
-            <form onSubmit={handleFormSubmit} className="space-y-6 px-6">
+            <form className="space-y-6 px-6">
               {/* Title */}
               <FormField
                 control={form.control}
@@ -563,7 +694,7 @@ export function BlogPostForm({
               />
 
               {/* Reading Time Display */}
-              {estimatedReadingTime && (
+              {estimatedReadingTime && !Number.isNaN(estimatedReadingTime) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span>
@@ -573,21 +704,51 @@ export function BlogPostForm({
               )}
 
               {/* Publishing Settings */}
-              <FormField
-                control={form.control}
-                name="isPublished"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel>Published</FormLabel>
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="featured"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            console.log("🔍 Featured switch changed:", checked);
+                            field.onChange(checked);
+                          }}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormLabel>Featured</FormLabel>
+                      {/* Remove FormMessage to prevent error display for boolean field */}
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isPublished"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            console.log(
+                              "🔍 Published switch changed:",
+                              checked,
+                            );
+                            field.onChange(checked);
+                          }}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormLabel>Published</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* Published Date */}
               {form.watch("isPublished") && (
@@ -600,7 +761,10 @@ export function BlogPostForm({
                       <FormControl>
                         <Input
                           type="date"
-                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) =>
+                            field.onChange(e.target.value || undefined)
+                          }
                           suppressHydrationWarning
                         />
                       </FormControl>
@@ -629,64 +793,124 @@ export function BlogPostForm({
                 )}
               />
 
-              {/* Media Gallery */}
+              {/* Featured Media Upload */}
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <FormLabel>Media Gallery</FormLabel>
+                  <FormLabel>Featured Media</FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Upload images and videos for your blog post. Click the star
-                    icon on any media item to set it as the featured media.
-                    Featured media will be prominently displayed.
+                    Upload a featured image or video for your blog post. This
+                    will be displayed as the main visual.
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowMediaUploader(!showMediaUploader)}
-                  >
-                    {showMediaUploader ? "Cancel" : "Add Media"}
-                  </Button>
-                </div>
 
-                {/* Featured Media Indicator */}
-                {media.some((m) => m.is_featured) && (
-                  <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <Star className="w-4 h-4 text-yellow-600 fill-current" />
-                    <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                      Featured media is selected and will be prominently
-                      displayed
-                    </span>
-                  </div>
-                )}
-
-                {/* Media Uploader */}
-                <AnimatePresence>
-                  {showMediaUploader && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <MediaUploader
-                        postId={postId || tempPostId || ""}
-                        onUploadComplete={handleMediaUploadComplete}
-                        onError={(error) => toast.error(error)}
-                      />
-                    </motion.div>
+                {/* Current Featured Media Display (for editing) */}
+                {postId &&
+                  currentFeaturedMediaUrl &&
+                  typeof currentFeaturedMediaUrl === "string" &&
+                  currentFeaturedMediaUrl.trim() !== "" && (
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                          Current Featured Media
+                        </span>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {currentFeaturedMediaType}
+                        </span>
+                      </div>
+                      {currentFeaturedMediaType === "image" ? (
+                        currentFeaturedMediaUrl?.trim() ? (
+                          <div className="relative w-full max-w-sm h-48">
+                            <Image
+                              src={currentFeaturedMediaUrl.trim()}
+                              alt="Current featured media"
+                              className="rounded-lg border"
+                              fill
+                              sizes="(max-width: 768px) 100vw, 384px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full max-w-sm h-48 bg-muted rounded-lg flex items-center justify-center">
+                            <span className="text-muted-foreground">
+                              No image available
+                            </span>
+                          </div>
+                        )
+                      ) : currentFeaturedMediaUrl?.trim() ? (
+                        <video
+                          src={currentFeaturedMediaUrl.trim()}
+                          controls
+                          className="w-full max-w-sm rounded-lg border"
+                          muted
+                        >
+                          Your browser does not support video tag.
+                        </video>
+                      ) : (
+                        <div className="w-full max-w-sm h-48 bg-muted rounded-lg flex items-center justify-center">
+                          <span className="text-muted-foreground">
+                            No video available
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Uploading a new file will replace this media
+                      </p>
+                    </div>
                   )}
-                </AnimatePresence>
 
-                {/* Media Gallery */}
-                {(postId || media.length > 0) && (
-                  <MediaGallery
-                    media={media}
-                    onMediaUpdate={handleMediaUpdate}
-                    onMediaDelete={handleMediaDelete}
-                    onMediaReorder={handleMediaReorder}
-                    editable={true}
+                {/* Featured Media Uploader */}
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFeaturedMediaChange(file);
+                        // Only show success message if file was accepted
+                        const isValidSize =
+                          (file.type.startsWith("video/") &&
+                            file.size <= 25 * 1024 * 1024) ||
+                          (file.type.startsWith("image/") &&
+                            file.size <= 10 * 1024 * 1024);
+
+                        if (isValidSize) {
+                          const fileType = file.type.startsWith("image/")
+                            ? "image"
+                            : "video";
+                          toast.success(
+                            `Selected featured ${fileType}: ${file.name}`,
+                          );
+                        }
+                      }
+                    }}
+                    className="hidden"
+                    id="featured-media-upload"
                   />
-                )}
+                  <label
+                    htmlFor="featured-media-upload"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Choose Featured Media
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Supports: Images (JPG, PNG, GIF) up to 10MB and Videos (MP4,
+                    WebM) up to 25MB
+                  </p>
+                  {featuredMedia && (
+                    <div className="mt-4 space-y-2">
+                      <div className="text-sm text-green-600 dark:text-green-400">
+                        Selected: {featuredMedia.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {featuredMedia.type.startsWith("image/")
+                          ? "Image"
+                          : "Video"}{" "}
+                        • {(featuredMedia.size / (1024 * 1024)).toFixed(2)} MB
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Preview */}
@@ -694,6 +918,14 @@ export function BlogPostForm({
                 <FormLabel>Preview</FormLabel>
                 <div className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2">
+                    {form.watch("featured") && (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1"
+                      >
+                        Featured
+                      </Badge>
+                    )}
                     <Badge
                       variant={
                         form.watch("isPublished") ? "default" : "secondary"
@@ -733,19 +965,47 @@ export function BlogPostForm({
 
               <DialogFooter className="border-t pt-4">
                 <div className="flex flex-col items-center gap-2 w-full">
-                  {!hasFormChanges() && !loading && !isSubmitting && (
+                  {!canPublish() && !loading && !isSubmitting && (
                     <p className="text-xs text-gray-500">
                       {postId
                         ? "Make changes to enable the update button"
-                        : "Fill in required fields to enable the publish button"}
+                        : "Add title and at least 10 characters of content to publish"}
                     </p>
                   )}
                   <div className="flex gap-2">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={handleSaveDraft}
-                      disabled={!!isSubmitting}
+                      onClick={async () => {
+                        console.log("🔍 Save Draft clicked");
+                        // Set form to draft mode and trigger validation/submission
+                        try {
+                          const currentValues = form.getValues();
+                          console.log("🔍 Current form values:", currentValues);
+                          console.log(
+                            "🔍 Form errors before draft:",
+                            form.formState.errors,
+                          );
+
+                          // Set to draft mode
+                          await form.setValue("isPublished", false, {
+                            shouldValidate: false,
+                            shouldDirty: true,
+                          });
+
+                          // Trigger form submission manually for draft
+                          const isValid = await form.trigger();
+                          console.log("🔍 Form validation result:", isValid);
+
+                          if (isValid) {
+                            const draftValues = form.getValues();
+                            await handleSaveDraft(draftValues);
+                          }
+                        } catch (error) {
+                          console.error("🔍 Error in Save Draft:", error);
+                        }
+                      }}
+                      disabled={isSubmitting !== false}
                     >
                       {isSubmitting === "draft" ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -756,8 +1016,37 @@ export function BlogPostForm({
                     </Button>
 
                     <Button
-                      type="submit"
-                      disabled={!!isSubmitting || !hasFormChanges()}
+                      type="button"
+                      onClick={async () => {
+                        console.log("🔍 Publish clicked");
+                        // Set form to published mode and trigger validation/submission
+                        try {
+                          const currentValues = form.getValues();
+                          console.log("🔍 Current form values:", currentValues);
+                          console.log(
+                            "🔍 Form errors before publish:",
+                            form.formState.errors,
+                          );
+
+                          // Set to published mode
+                          await form.setValue("isPublished", true, {
+                            shouldValidate: false,
+                            shouldDirty: true,
+                          });
+
+                          // Trigger form validation
+                          const isValid = await form.trigger();
+                          console.log("🔍 Form validation result:", isValid);
+
+                          if (isValid) {
+                            const publishValues = form.getValues();
+                            await handlePublish(publishValues);
+                          }
+                        } catch (error) {
+                          console.error("🔍 Error in Publish:", error);
+                        }
+                      }}
+                      disabled={isSubmitting !== false}
                     >
                       {isSubmitting === "publish" ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
