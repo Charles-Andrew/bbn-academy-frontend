@@ -18,7 +18,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BlogPostForm } from "@/components/admin/blog/BlogPostForm";
 import {
@@ -61,6 +61,7 @@ export default function BlogsAdminPage() {
     loading,
     error,
     setBlogFilters,
+    setBlogPagination,
     refreshBlogPosts,
     removeBlogPost,
     toggleBlogPostPublished,
@@ -72,30 +73,62 @@ export default function BlogsAdminPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
+  // Debounce ref for search
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced refresh function
+  const debouncedRefresh = useCallback(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      refreshBlogPosts();
+    }, 500); // 500ms debounce
+  }, [refreshBlogPosts]);
+
   // Initialize data on component mount
   useEffect(() => {
     refreshBlogPosts();
   }, [refreshBlogPosts]);
 
-  // Handle search and filters
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle search and filters with auto-refresh
   const handleSearch = (value: string) => {
     setBlogFilters({ search: value });
+    // Reset to page 1 when searching
+    setBlogPagination({ ...blogPagination, page: 1 });
+    debouncedRefresh();
   };
 
   const handleStatusFilter = (status: string) => {
     setBlogFilters({
       status: status === "all" ? undefined : (status as "published" | "draft"),
     });
+    // Reset to page 1 when filtering
+    setBlogPagination({ ...blogPagination, page: 1 });
+    debouncedRefresh();
   };
 
   const handleSortChange = (value: string) => {
     const [sortBy, sortOrder] = value.split("-");
     setBlogFilters({ sortBy, sortOrder });
+    // Reset to page 1 when sorting
+    setBlogPagination({ ...blogPagination, page: 1 });
+    debouncedRefresh();
   };
 
   // Handle pagination
-  const handlePageChange = (_page: number) => {
-    // Note: You'll need to add setBlogPagination to refreshBlogPosts call
+  const handlePageChange = (page: number) => {
+    setBlogPagination({ ...blogPagination, page });
     refreshBlogPosts();
   };
 
@@ -325,17 +358,6 @@ export default function BlogsAdminPage() {
                 </SelectContent>
               </Select>
             </ClientOnlySelect>
-
-            {/* Refresh */}
-            <Button
-              variant="outline"
-              onClick={() => refreshBlogPosts()}
-              disabled={loading}
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
-            </Button>
           </div>
         </CardContent>
       </Card>

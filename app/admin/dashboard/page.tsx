@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 import AdminDashboardClient from "@/components/admin/admin-dashboard-client";
 
 export const metadata: Metadata = {
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminDashboard() {
-  return <AdminDashboardClient />;
+  return (
+    <ProtectedRoute>
+      <AdminDashboardClient />
+    </ProtectedRoute>
+  );
 }
