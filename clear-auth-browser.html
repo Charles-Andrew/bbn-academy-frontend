@@ -1,0 +1,37 @@
+<!-- Clear Supabase Auth Tokens - Run this script in browser console -->
+<script>
+(function() {
+  console.log('Clearing Supabase auth tokens...');
+  
+  // Clear localStorage
+  Object.keys(localStorage).forEach(key => {
+    if (key.includes('supabase')) {
+      console.log('Removing localStorage key:', key);
+      localStorage.removeItem(key);
+    }
+  });
+  
+  // Clear sessionStorage
+  Object.keys(sessionStorage).forEach(key => {
+    if (key.includes('supabase')) {
+      console.log('Removing sessionStorage key:', key);
+      sessionStorage.removeItem(key);
+    }
+  });
+  
+  console.log('Auth tokens cleared. Reloading page...');
+  window.location.reload();
+})();
+</script>
+
+<!-- How to use:
+1. Open browser developer tools (F12)
+2. Go to Console tab
+3. Copy and paste the script above (without <script> tags)
+4. Press Enter
+5. The page will reload with clean auth state
+-->
+
+<!-- Alternative one-liner for console:
+Object.keys(localStorage).forEach(k=>k.includes('supabase')&&localStorage.removeItem(k)); Object.keys(sessionStorage).forEach(k=>k.includes('supabase')&&sessionStorage.removeItem(k)); location.reload();
+-->
