@@ -49,7 +49,6 @@ const engagementFormSchema = z.object({
     "event",
   ]),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  content: z.string().optional(),
   images: z.array(z.string().url()),
 });
 
@@ -124,7 +123,6 @@ export function EngagementForm({
       title: "",
       type: "workshop",
       description: "",
-      content: "",
       images: [],
     },
   });
@@ -146,7 +144,6 @@ export function EngagementForm({
               title: engagement.title || "",
               type: engagement.type || "workshop",
               description: engagement.description || "",
-              content: engagement.content || "",
               images: engagement.images || [],
             });
           } else {
@@ -169,7 +166,6 @@ export function EngagementForm({
         title: "",
         type: "workshop",
         description: "",
-        content: "",
         images: [],
       });
     }
@@ -347,26 +343,7 @@ export function EngagementForm({
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name="content"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Detailed Content</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Enter detailed content, agenda, or learning outcomes"
-                                  rows={6}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Full content for the engagement page
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        
                       </CardContent>
                     </Card>
 
