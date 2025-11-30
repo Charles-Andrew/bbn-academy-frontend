@@ -30,18 +30,27 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateReadingTime, generateUniqueSlugSync } from "@/lib/blog-utils";
-import { blogPostSchema } from "@/lib/validations";
 import { useAdminStore } from "@/store/admin-store";
 import type { BlogMedia, BlogTag } from "@/types/blog";
 import { MediaGallery } from "./MediaGallery";
 import { MediaUploader } from "./MediaUploader";
 import { TagSelector } from "./TagSelector";
 
-// Create a form-specific schema where fields with defaults are required
-const blogPostFormSchema = blogPostSchema.extend({
+// Create a form-specific schema that matches our form structure
+const blogPostFormSchema = z.object({
+  title: z.string().min(1, "Blog title is required"),
+  slug: z.string().optional(),
+  excerpt: z.string().optional(),
+  content: z.string().min(10, "Blog content must be at least 10 characters"),
+  featuredMediaId: z.string().uuid().nullable().optional(),
+  authorId: z.string().uuid().optional(),
   isPublished: z.boolean(),
+  publishedAt: z.string().optional(),
+  readingTime: z.number().optional(),
   tags: z.array(z.string()),
   featured: z.boolean(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
 });
 
 type BlogPostFormData = z.infer<typeof blogPostFormSchema>;
@@ -83,10 +92,14 @@ export function BlogPostForm({
       excerpt: "",
       content: "",
       featuredMediaId: null, // Changed from featuredImage
+      authorId: undefined,
       isPublished: false,
-      publishedAt: "",
+      publishedAt: undefined,
+      readingTime: undefined,
       tags: [],
       featured: false,
+      seoTitle: "",
+      seoDescription: "",
     },
   });
 
@@ -112,9 +125,6 @@ export function BlogPostForm({
       "isPublished",
       "publishedAt",
       "tags",
-      "featured",
-      "seoTitle",
-      "seoDescription",
     ];
 
     return fieldsToCheck.some((field) => {
@@ -165,13 +175,12 @@ export function BlogPostForm({
                 slug: post.slug || "",
                 excerpt: post.excerpt || "",
                 content: post.content || "",
-                featuredMediaId: post.featured_media_id || null, // Changed from featured_image
+                featuredMediaId: post.featured_image || null, // Use correct database field name
                 isPublished: post.is_published || false,
                 publishedAt: post.published_at
-                  ? new Date(post.published_at).toISOString().slice(0, 16)
-                  : "",
+                  ? new Date(post.published_at).toISOString().slice(0, 10)
+                  : undefined,
                 tags: tagNames,
-                featured: post.featured || false,
               });
 
               setEstimatedReadingTime(post.reading_time);
@@ -194,9 +203,8 @@ export function BlogPostForm({
           content: "",
           featuredMediaId: null, // Changed from featuredImage
           isPublished: false,
-          publishedAt: "",
+          publishedAt: undefined,
           tags: [],
-          featured: false,
         });
         setEstimatedReadingTime(null);
         setMedia([]);
@@ -385,7 +393,7 @@ export function BlogPostForm({
 
     // Set published date if not already set
     if (!data.publishedAt) {
-      form.setValue("publishedAt", new Date().toISOString().slice(0, 16));
+      form.setValue("publishedAt", new Date().toISOString().slice(0, 10));
     }
 
     await onSubmit({ ...data, isPublished: true }, false);
@@ -428,7 +436,6 @@ export function BlogPostForm({
   const watchedTitle = form.watch("title");
   const watchedSlug = form.watch("slug");
   const watchedTags = form.watch("tags");
-  const isFeatured = form.watch("featured");
 
   const handleFormSubmit = form.handleSubmit((data) => onSubmit(data, false)); // Regular submission (publish)
   const handleDraftSubmit = form.handleSubmit((data) => onSubmit(data, true)); // Draft submission
@@ -566,39 +573,21 @@ export function BlogPostForm({
               )}
 
               {/* Publishing Settings */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="isPublished"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel>Published</FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="featured"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel>Featured</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="isPublished"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel>Published</FormLabel>
+                  </FormItem>
+                )}
+              />
 
               {/* Published Date */}
               {form.watch("isPublished") && (
@@ -609,7 +598,11 @@ export function BlogPostForm({
                     <FormItem>
                       <FormLabel>Publication Date</FormLabel>
                       <FormControl>
-                        <Input type="datetime-local" {...field} />
+                        <Input
+                          type="date"
+                          {...field}
+                          suppressHydrationWarning
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -708,15 +701,6 @@ export function BlogPostForm({
                     >
                       {form.watch("isPublished") ? "Published" : "Draft"}
                     </Badge>
-                    {isFeatured && (
-                      <Badge
-                        variant="outline"
-                        className="flex items-center gap-1"
-                      >
-                        <Star className="h-3 w-3" />
-                        Featured
-                      </Badge>
-                    )}
                   </div>
 
                   <div>

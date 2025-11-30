@@ -50,9 +50,8 @@ const updateCache = async () => {
     lastCacheUpdate = Date.now();
   } catch (error) {
     console.error("Error updating blog cache:", error);
-    // If cache update fails, don't override existing cache
-    // During build time, set empty cache to prevent repeated attempts
-    if (process.env.NEXT_PHASE === "phase-production-build") {
+    // Don't override existing cache on failure, but initialize if empty
+    if (!cachedPosts || !cachedTags) {
       cachedPosts = [];
       cachedTags = [];
       lastCacheUpdate = Date.now();
@@ -62,8 +61,15 @@ const updateCache = async () => {
 
 // Initialize cache on module load (but not during build time)
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
-if (!isBuildTime && (!cachedPosts || !cachedTags || !isCacheValid())) {
-  updateCache();
+const isDevelopment = process.env.NODE_ENV === "development";
+
+// Only initialize cache during development or runtime, never during build
+if (
+  !isBuildTime &&
+  isDevelopment &&
+  (!cachedPosts || !cachedTags || !isCacheValid())
+) {
+  updateCache().catch(console.error);
 }
 
 // Export cached blog posts (for backward compatibility)
