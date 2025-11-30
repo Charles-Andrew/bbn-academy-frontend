@@ -39,9 +39,9 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default function Home() {
+export default async function Home() {
   const featuredProducts = getFeaturedProducts();
-  const featuredPosts = getFeaturedPosts();
+  const featuredPosts = await getFeaturedPosts();
   const upcomingEngagements = getUpcomingEngagements().slice(0, 3);
 
   return (
