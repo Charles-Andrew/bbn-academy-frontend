@@ -140,11 +140,7 @@ export const blogPostSchema = z.object({
     .string()
     .min(10, "Blog content must be at least 10 characters")
     .max(50000, "Content cannot exceed 50,000 characters"),
-  featuredMediaId: z
-    .string()
-    .uuid("Invalid featured media ID")
-    .nullable()
-    .optional(), // Changed from featuredImage
+
   authorId: z.string().uuid("Invalid author ID").optional(),
   isPublished: z.boolean().default(false),
   publishedAt: z
@@ -252,10 +248,21 @@ export const blogMediaUploadSchema = z.object({
     .array(z.instanceof(File))
     .min(1, "At least one file must be provided")
     .max(10, "Cannot upload more than 10 files at once")
-    .refine(
-      (files) => files.every((file) => file.size <= 50 * 1024 * 1024), // 50MB per file
-      "Each file cannot exceed 50MB",
-    )
+    .refine((files) => {
+      // Check each file for appropriate size limits
+      for (const file of files) {
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+
+        if (isImage && file.size > 10 * 1024 * 1024) {
+          return false; // Images must be ≤ 10MB
+        }
+        if (isVideo && file.size > 25 * 1024 * 1024) {
+          return false; // Videos must be ≤ 25MB
+        }
+      }
+      return true;
+    }, "Images cannot exceed 10MB and videos cannot exceed 25MB")
     .refine((files) => {
       const allowedTypes = [
         // Image formats
@@ -497,7 +504,6 @@ export type BlogPostForm = {
   slug?: string;
   excerpt?: string;
   content: string;
-  featuredMediaId?: string | null;
   authorId?: string;
   isPublished: boolean;
   publishedAt?: string;

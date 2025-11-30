@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { refreshBlogCache } from "@/data/blogs";
 import { createBlogTag, getBlogTags } from "@/lib/supabase/blog-server";
 import { createClient } from "@/lib/supabase/server";
 import { blogTagSchema } from "@/lib/validations";
@@ -79,7 +78,6 @@ export async function POST(request: NextRequest) {
     });
 
     // Refresh cache
-    await refreshBlogCache();
 
     return NextResponse.json({ tag }, { status: 201 });
   } catch (error) {

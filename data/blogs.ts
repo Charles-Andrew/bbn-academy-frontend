@@ -5,90 +5,44 @@ import {
 } from "@/lib/blog-server";
 import type { BlogFilters, BlogPost, BlogTag } from "@/types/blog";
 
-// Cache for static data to improve performance
-let cachedPosts: BlogPost[] | null = null;
-let cachedTags: BlogTag[] | null = null;
-let lastCacheUpdate = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Simple functions that fetch fresh data from Supabase each time
 
-// Helper function to check if cache is valid
-const isCacheValid = () => {
-  return Date.now() - lastCacheUpdate < CACHE_DURATION;
-};
-
-// Helper function to update cache
-const updateCache = async () => {
-  try {
-    // During build time (static generation), we can't access cookies
-    // so we'll skip cache updates and use empty data
-    const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
-    if (isBuildTime) {
-      console.log("Skipping blog cache update during static generation");
-      cachedPosts = [];
-      cachedTags = [];
-      lastCacheUpdate = Date.now();
-      return;
-    }
-
-    const postsResult = await getBlogPostsFromDb(
-      { page: 1, limit: 100 }, // Get more posts for better caching
-      { status: "published", sortBy: "created_at", sortOrder: "desc" },
-    );
-
-    const tags = await getBlogTagsFromDb();
-
-    // Transform posts to match expected format
-    const transformedPosts = postsResult.posts.map((post) => ({
-      ...post,
-      featured_media_id: post.featured_image, // Map from database field
-      tags: post.tags || [], // Tags are already transformed in blog-server.ts
-      media: post.media || [], // Media is already handled in blog-server.ts
-    }));
-
-    cachedPosts = transformedPosts;
-    cachedTags = tags;
-    lastCacheUpdate = Date.now();
-  } catch (error) {
-    console.error("Error updating blog cache:", error);
-    // Don't override existing cache on failure, but initialize if empty
-    if (!cachedPosts || !cachedTags) {
-      cachedPosts = [];
-      cachedTags = [];
-      lastCacheUpdate = Date.now();
-    }
-  }
-};
-
-// Initialize cache on module load (but not during build time)
-const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
-const isDevelopment = process.env.NODE_ENV === "development";
-
-// Only initialize cache during development or runtime, never during build
-if (
-  !isBuildTime &&
-  isDevelopment &&
-  (!cachedPosts || !cachedTags || !isCacheValid())
-) {
-  updateCache().catch(console.error);
-}
-
-// Export cached blog posts (for backward compatibility)
-export const blogPosts: BlogPost[] = cachedPosts || [];
-
-// Export cached blog tags (for backward compatibility)
-export const blogTags: BlogTag[] = cachedTags || [];
-
-// Functions that use Supabase with caching
 export const getPublishedPosts = async (): Promise<BlogPost[]> => {
-  if (!cachedPosts || !isCacheValid()) {
-    await updateCache();
-  }
-  return (cachedPosts || []).filter((post) => post.is_published);
+  const postsResult = await getBlogPostsFromDb(
+    { page: 1, limit: 100 },
+    { status: "published", sortBy: "published_at", sortOrder: "desc" },
+  );
+
+  // Transform posts to match expected format
+  return postsResult.posts.map((post) => ({
+    ...post,
+    tags: post.tags || [], // Tags are already transformed in blog-server.ts
+    media: post.media || [], // Media is already handled in blog-server.ts
+  }));
 };
 
 export const getFeaturedPosts = async (): Promise<BlogPost[]> => {
-  const published = await getPublishedPosts();
-  return published.slice(0, 3); // Return first 3 as featured
+  const posts = await getPublishedPosts();
+
+  // Only return posts explicitly marked as featured and published
+  const explicitlyFeatured = posts.filter(
+    (post) => post.is_published && post.featured,
+  );
+
+  return explicitlyFeatured.slice(0, 3);
+};
+
+export const getRecentPosts = async (limit = 3): Promise<BlogPost[]> => {
+  const posts = await getPublishedPosts();
+
+  return posts
+    .sort((a, b) => {
+      // Sort by published_at (descending), fallback to created_at
+      const dateA = new Date(a.published_at || a.created_at);
+      const dateB = new Date(b.published_at || b.created_at);
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, limit);
 };
 
 export const getPostBySlug = async (
@@ -110,19 +64,15 @@ export const getPostBySlug = async (
 };
 
 export const getPostsByTag = async (tagName: string): Promise<BlogPost[]> => {
-  if (!cachedPosts || !isCacheValid()) {
-    await updateCache();
-  }
-  return (cachedPosts || []).filter((post) => post.tags?.includes(tagName));
+  const posts = await getPublishedPosts();
+  return posts.filter((post) => post.tags?.includes(tagName));
 };
 
 export const searchPosts = async (query: string): Promise<BlogPost[]> => {
-  if (!cachedPosts || !isCacheValid()) {
-    await updateCache();
-  }
+  const posts = await getPublishedPosts();
 
   const searchLower = query.toLowerCase();
-  return (cachedPosts || []).filter(
+  return posts.filter(
     (post) =>
       post.title.toLowerCase().includes(searchLower) ||
       post.excerpt?.toLowerCase().includes(searchLower) ||
@@ -133,11 +83,9 @@ export const searchPosts = async (query: string): Promise<BlogPost[]> => {
 export const filterPosts = async (
   filters: BlogFilters,
 ): Promise<BlogPost[]> => {
-  if (!cachedPosts || !isCacheValid()) {
-    await updateCache();
-  }
+  const posts = await getPublishedPosts();
 
-  return (cachedPosts || []).filter((post) => {
+  return posts.filter((post) => {
     if (
       filters.published !== undefined &&
       post.is_published !== filters.published
@@ -182,86 +130,32 @@ export const getRelatedPosts = async (
 };
 
 export const getBlogSlugs = async (): Promise<string[]> => {
-  if (!cachedPosts || !isCacheValid()) {
-    await updateCache();
+  const posts = await getPublishedPosts();
+  return posts.map((post) => post.slug);
+};
+
+// For backward compatibility, also provide synchronous versions (now just aliases)
+export const getPublishedPostsSync = getPublishedPosts;
+export const getFeaturedPostsSync = getFeaturedPosts;
+export const getPostBySlugSync = getPostBySlug;
+export const getPostsByTagSync = getPostsByTag;
+export const searchPostsSync = searchPosts;
+export const filterPostsSync = filterPosts;
+export const getRelatedPostsSync = getRelatedPosts;
+export const getBlogSlugsSync = getBlogSlugs;
+
+// Export cached blog tags (for backward compatibility)
+export let blogTags: BlogTag[] = [];
+
+// Initialize blog tags
+const initializeBlogTags = async () => {
+  try {
+    blogTags = await getBlogTagsFromDb();
+  } catch (error) {
+    console.error("Error initializing blog tags:", error);
+    blogTags = [];
   }
-  return (cachedPosts || [])
-    .filter((post) => post.is_published)
-    .map((post) => post.slug);
 };
 
-// Helper function to manually refresh cache (useful for admin operations)
-export const refreshBlogCache = async () => {
-  await updateCache();
-};
-
-// For backward compatibility, also provide synchronous versions that use cache
-export const getPublishedPostsSync = () =>
-  (cachedPosts || []).filter((post) => post.is_published);
-
-export const getFeaturedPostsSync = () => {
-  const published = getPublishedPostsSync();
-  return published.slice(0, 3);
-};
-
-export const getPostBySlugSync = (slug: string) =>
-  (cachedPosts || []).find((post) => post.slug === slug);
-
-export const getPostsByTagSync = (tagName: string) =>
-  (cachedPosts || []).filter((post) => post.tags?.includes(tagName));
-
-export const searchPostsSync = (query: string) =>
-  (cachedPosts || []).filter(
-    (post) =>
-      post.title.toLowerCase().includes(query.toLowerCase()) ||
-      post.excerpt?.toLowerCase().includes(query.toLowerCase()) ||
-      post.content.toLowerCase().includes(query.toLowerCase()),
-  );
-
-export const filterPostsSync = (filters: BlogFilters) => {
-  return (cachedPosts || []).filter((post) => {
-    if (
-      filters.published !== undefined &&
-      post.is_published !== filters.published
-    )
-      return false;
-    if (filters.tag && !post.tags?.includes(filters.tag)) return false;
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      if (
-        !post.title.toLowerCase().includes(searchLower) &&
-        !post.excerpt?.toLowerCase().includes(searchLower) &&
-        !post.content.toLowerCase().includes(searchLower)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  });
-};
-
-export const getRelatedPostsSync = (currentPost: BlogPost, limit = 3) => {
-  const published = getPublishedPostsSync().filter(
-    (post) => post.id !== currentPost.id,
-  );
-
-  // First try to find posts with shared tags
-  const withSharedTags = published.filter((post) =>
-    post.tags?.some((tag) => currentPost.tags?.includes(tag)),
-  );
-
-  if (withSharedTags.length >= limit) {
-    return withSharedTags.slice(0, limit);
-  }
-
-  // If not enough, fill with other posts
-  return [
-    ...withSharedTags,
-    ...published.filter((post) => !withSharedTags.includes(post)),
-  ].slice(0, limit);
-};
-
-export const getBlogSlugsSync = () =>
-  (cachedPosts || [])
-    .filter((post) => post.is_published)
-    .map((post) => post.slug);
+// Initialize tags on module load
+initializeBlogTags();

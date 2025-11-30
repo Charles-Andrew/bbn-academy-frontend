@@ -4,15 +4,30 @@ import { MainLayout } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FeaturedMedia } from "@/components/ui/featured-media";
 import {
   MotionFadeIn,
   MotionStaggerChildren,
 } from "@/components/ui/motion-fade-in";
-import { getFeaturedPosts, getPublishedPosts } from "@/data/blogs";
+import { getFeaturedPosts, getRecentPosts } from "@/data/blogs";
 
 export default async function BlogsPage() {
   const featuredPosts = await getFeaturedPosts();
-  const recentPosts = (await getPublishedPosts()).slice(0, 6);
+  const featuredPostIds = featuredPosts.map((post) => post.id);
+
+  // Get recent posts, excluding those already featured (if any featured posts exist)
+  const allRecentPosts = await getRecentPosts(6); // Get 6 recent posts
+  let recentPosts = allRecentPosts.filter(
+    (post) => !featuredPostIds.includes(post.id),
+  );
+
+  // If we filtered out featured posts and have no posts left, get more recent posts
+  if (recentPosts.length < 6) {
+    const additionalRecentPosts = await getRecentPosts(12); // Get more posts to fill the gap
+    recentPosts = additionalRecentPosts
+      .filter((post) => !featuredPostIds.includes(post.id))
+      .slice(0, 6);
+  }
 
   return (
     <MainLayout>
@@ -58,12 +73,12 @@ export default async function BlogsPage() {
                   className="group hover:shadow-lg transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div className="aspect-[16/9] bg-muted rounded-md mb-4 flex items-center justify-center">
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold text-muted-foreground">
-                          Featured Image
-                        </h3>
-                      </div>
+                    <div className="aspect-[16/9] bg-muted rounded-md mb-4 overflow-hidden">
+                      <FeaturedMedia
+                        mediaUrl={post.featured_media_url}
+                        mediaType={post.featured_media_type}
+                        title={post.title}
+                      />
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -138,12 +153,12 @@ export default async function BlogsPage() {
                 className="group hover:shadow-lg transition-all duration-300"
               >
                 <CardContent className="p-6">
-                  <div className="aspect-[16/9] bg-muted rounded-md mb-4 flex items-center justify-center">
-                    <div className="text-center">
-                      <h3 className="text-sm font-medium text-muted-foreground">
-                        Article Image
-                      </h3>
-                    </div>
+                  <div className="aspect-[16/9] bg-muted rounded-md mb-4 overflow-hidden">
+                    <FeaturedMedia
+                      mediaUrl={post.featured_media_url}
+                      mediaType={post.featured_media_type}
+                      title={post.title}
+                    />
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">

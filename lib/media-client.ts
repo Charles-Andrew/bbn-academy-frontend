@@ -8,7 +8,7 @@ export function getMediaPublicUrl(filePath: string): string {
     console.warn("Supabase URL not configured");
     return "";
   }
-  return `${supabaseUrl}/storage/v1/object/public/blog-media/${filePath}`;
+  return `${supabaseUrl}/storage/v1/object/public/blog-images/${filePath}`;
 }
 
 // Client-side media utility functions
