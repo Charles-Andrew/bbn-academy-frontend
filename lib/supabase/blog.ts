@@ -146,10 +146,12 @@ export async function getBlogPosts(
     "id",
     "excerpt",
     "content",
-    "featured_image",
+    "featured_media_url",
+    "featured_media_type",
     "author_id",
     "is_published",
     "reading_time",
+    "featured",
   ] as const;
   const column = validSortColumns.includes(sortColumn as keyof BlogPost)
     ? sortColumn
@@ -170,7 +172,7 @@ export async function getBlogPosts(
   // Transform the data to include tags as a simple array of tag names and media with public URLs
   const transformedPosts = posts?.map((post: PostWithTagsAndMediaFromDB) => {
     // Transform media data to include public URLs
-    const media =
+    const _media =
       post.blog_media
         ?.map((mediaItem) => {
           // Note: This would need the actual Supabase client instance
@@ -199,7 +201,6 @@ export async function getBlogPosts(
       ...post,
       tags:
         post.post_tags?.map((pt) => pt.blog_tags?.name).filter(Boolean) || [],
-      media,
     };
   });
 
@@ -257,7 +258,7 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
   const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
 
   // Transform media data
-  const media =
+  const _media =
     blogPostWithTagsAndMedia.blog_media
       ?.map(
         (mediaItem) =>
@@ -283,12 +284,12 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
 
   const transformedPost: IBlogPost = {
     ...blogPostWithTagsAndMedia,
-    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
+    featured_media_url: blogPostWithTagsAndMedia.featured_media_url, // Map from database field
+    featured_media_type: blogPostWithTagsAndMedia.featured_media_type, // Map from database field
     tags:
       blogPostWithTagsAndMedia.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media,
   };
 
   return transformedPost;
@@ -337,7 +338,7 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
   const blogPostWithTagsAndMedia = post as BlogPostWithTagsAndMedia;
 
   // Transform media data
-  const media =
+  const _media =
     blogPostWithTagsAndMedia.blog_media
       ?.map(
         (mediaItem) =>
@@ -363,12 +364,12 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
 
   const transformedPost: IBlogPost = {
     ...blogPostWithTagsAndMedia,
-    featured_media_id: blogPostWithTagsAndMedia.featured_image, // Map from database field
+    featured_media_url: blogPostWithTagsAndMedia.featured_media_url, // Map from database field
+    featured_media_type: blogPostWithTagsAndMedia.featured_media_type, // Map from database field
     tags:
       blogPostWithTagsAndMedia.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media,
   };
 
   return transformedPost;
@@ -763,7 +764,7 @@ export async function deleteBlogMedia(id: string): Promise<void> {
 
   // Delete from storage
   const { error: storageError } = await supabase.storage
-    .from("blog-media")
+    .from("blog-images")
     .remove([media.file_path]);
 
   if (storageError) {
@@ -801,5 +802,5 @@ export function getMediaPublicUrl(filePath: string): string {
   if (!supabaseUrl) {
     throw new Error("Supabase URL not configured");
   }
-  return `${supabaseUrl}/storage/v1/object/public/blog-media/${filePath}`;
+  return `${supabaseUrl}/storage/v1/object/public/blog-images/${filePath}`;
 }

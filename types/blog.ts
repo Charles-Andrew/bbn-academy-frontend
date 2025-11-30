@@ -4,7 +4,8 @@ export interface BlogPost {
   slug: string;
   excerpt: string | null;
   content: string;
-  featured_media_id: string | null; // Changed from featured_image to reference blog_media table
+  featured_media_url: string | null; // URL of the featured media (image or video)
+  featured_media_type: "image" | "video" | null; // Type of featured media
   author_id: string;
   published_at: string | null;
   is_published: boolean;
@@ -12,7 +13,6 @@ export interface BlogPost {
   created_at: string;
   tags?: string[];
   featured?: boolean;
-  media?: BlogMedia[]; // New field for multiple media files
 }
 
 export interface BlogTag {

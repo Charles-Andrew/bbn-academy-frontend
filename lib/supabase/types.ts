@@ -306,7 +306,9 @@ export interface Database {
           slug: string;
           excerpt: string | null;
           content: string;
-          featured_image: string | null;
+          featured: boolean;
+          featured_media_url: string | null;
+          featured_media_type: "image" | "video" | null;
           author_id: string;
           published_at: string | null;
           is_published: boolean;
@@ -320,7 +322,9 @@ export interface Database {
           slug: string;
           excerpt?: string | null;
           content: string;
-          featured_image?: string | null;
+          featured?: boolean;
+          featured_media_url?: string | null;
+          featured_media_type?: "image" | "video" | null;
           author_id?: string;
           published_at?: string | null;
           is_published?: boolean;
@@ -334,7 +338,9 @@ export interface Database {
           slug?: string;
           excerpt?: string | null;
           content?: string;
-          featured_image?: string | null;
+          featured?: boolean;
+          featured_media_url?: string | null;
+          featured_media_type?: "image" | "video" | null;
           author_id?: string;
           published_at?: string | null;
           is_published?: boolean;

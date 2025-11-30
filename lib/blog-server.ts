@@ -86,10 +86,12 @@ export async function getBlogPosts(
     "id",
     "excerpt",
     "content",
-    "featured_image",
+    "featured_media_url",
+    "featured_media_type",
     "author_id",
     "is_published",
     "reading_time",
+    "featured",
   ] as const;
   const column = validSortColumns.includes(sortColumn as keyof BlogPost)
     ? sortColumn
@@ -144,6 +146,7 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
       )
     `)
     .eq("slug", slug)
+    .eq("is_published", true)
     .single();
 
   if (error) {
@@ -156,12 +159,10 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost> {
 
   const transformedPost: IBlogPost = {
     ...blogPostWithTags,
-    featured_media_id: blogPostWithTags.featured_image, // Map from database field
     tags:
       blogPostWithTags.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media: [], // Empty media array until blog_media table is created
   };
 
   return transformedPost;
@@ -195,12 +196,10 @@ export async function getBlogPostById(id: string): Promise<IBlogPost> {
 
   const transformedPost: IBlogPost = {
     ...blogPostWithTags,
-    featured_media_id: blogPostWithTags.featured_image, // Map from database field
     tags:
       blogPostWithTags.post_tags
         ?.map((pt) => pt.blog_tags?.name)
         .filter(Boolean) || [],
-    media: [], // Empty media array until blog_media table is created
   };
 
   return transformedPost;
