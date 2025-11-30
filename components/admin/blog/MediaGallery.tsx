@@ -234,15 +234,16 @@ export function MediaGallery({
     draggedOverItem.current = null;
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+  const formatFileSize = (bytes: number | undefined | null) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = (seconds: number | undefined | null) => {
+    if (!seconds || seconds < 0) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -366,11 +367,11 @@ export function MediaGallery({
                           </h3>
                           <div className="flex items-center gap-2 text-sm text-gray-500">
                             <span className="capitalize">
-                              {mediaItem.file_type}
+                              {mediaItem.file_type || "Unknown"}
                             </span>
                             <span>•</span>
                             <span>{formatFileSize(mediaItem.file_size)}</span>
-                            {mediaItem.duration && (
+                            {mediaItem.duration && mediaItem.duration > 0 && (
                               <>
                                 <span>•</span>
                                 <span>

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { type FileRejection, useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,11 +58,59 @@ export function MediaUploader({
   }, []);
 
   const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
+    async (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       const remainingSlots = maxFiles - files.length;
-      const filesToAdd = acceptedFiles.slice(0, remainingSlots);
 
-      if (acceptedFiles.length > remainingSlots) {
+      // Validate file sizes manually
+      const validFiles: File[] = [];
+      const oversizedFiles: string[] = [];
+
+      for (const file of acceptedFiles) {
+        const isVideo = file.type.startsWith("video/");
+        const isImage = file.type.startsWith("image/");
+
+        if (isVideo && file.size > 25 * 1024 * 1024) {
+          oversizedFiles.push(
+            `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+          );
+        } else if (isImage && file.size > 10 * 1024 * 1024) {
+          oversizedFiles.push(
+            `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+          );
+        } else {
+          validFiles.push(file);
+        }
+      }
+
+      // Show error for oversized files
+      if (oversizedFiles.length > 0) {
+        const message =
+          oversizedFiles.length === 1
+            ? `File too large: ${oversizedFiles[0]}`
+            : `Files too large: ${oversizedFiles.join(", ")}`;
+        onError?.(
+          `${message}. Maximum sizes: 25MB for videos, 10MB for images.`,
+        );
+      }
+
+      const filesToAdd = validFiles.slice(0, remainingSlots);
+
+      // Handle dropzone file rejections
+      if (fileRejections.length > 0) {
+        const rejectedFiles = fileRejections
+          .filter((rejection) =>
+            rejection.errors.some((error) => error.code === "file-too-large"),
+          )
+          .map((rejection) => rejection.file.name);
+
+        if (rejectedFiles.length > 0) {
+          onError?.(
+            `${rejectedFiles.join(", ")} - File(s) exceed size limits.`,
+          );
+        }
+      }
+
+      if (validFiles.length > remainingSlots) {
         onError?.(
           `Only ${remainingSlots} more file(s) can be added (max ${maxFiles})`,
         );
@@ -91,7 +139,7 @@ export function MediaUploader({
       "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp", ".svg"],
       "video/*": [".mp4", ".webm", ".ogg", ".mov", ".quicktime"],
     },
-    maxSize: 50 * 1024 * 1024, // 50MB per file
+    maxSize: 25 * 1024 * 1024, // 25MB for videos (images will be validated separately)
     maxFiles: maxFiles - files.length,
     disabled: isUploading || files.length >= maxFiles,
   });
@@ -208,7 +256,7 @@ export function MediaUploader({
             OGG, MOV)
           </p>
           <p className="text-xs text-gray-400">
-            Max file size: 50MB • Max files: {maxFiles}
+            Max file size: 10MB (images) / 25MB (videos) • Max files: {maxFiles}
           </p>
         </CardContent>
       </Card>
