@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
 
     await logger.logSuccess(
       "log_stats_accessed",
-      { stats_generated: true },
-      { id: "admin_user", email: "admin@example.com" }, // Update with actual user extraction
+      { stats_generated: true, user_type: "admin" },
+      { id: "admin_user", email: "admin@bbn-academy.com" }, // Admin user from admin dashboard
       request,
     );
 
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     await logger.logError(
       "log_stats_fetch_failed",
       error instanceof Error ? error : "Unknown error",
-      { request_url: request.url },
-      { id: "admin_user", email: "admin@example.com" },
+      { request_url: request.url, user_type: "admin" },
+      { id: "admin_user", email: "admin@bbn-academy.com" },
       request,
     );
 

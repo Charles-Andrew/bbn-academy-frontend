@@ -35,8 +35,9 @@ export async function GET(request: NextRequest) {
         ),
         results_returned: result.logs.length,
         total_results: result.total,
+        user_type: "admin",
       },
-      { id: "admin_user", email: "admin@example.com" }, // Update with actual user extraction
+      { id: "admin_user", email: "admin@bbn-academy.com" }, // Admin user from admin dashboard
       request,
     );
 
@@ -55,8 +56,8 @@ export async function GET(request: NextRequest) {
     await logger.logError(
       "logs_fetch_failed",
       error instanceof Error ? error : "Unknown error",
-      { request_url: request.url },
-      { id: "admin_user", email: "admin@example.com" },
+      { request_url: request.url, user_type: "admin" },
+      { id: "admin_user", email: "admin@bbn-academy.com" },
       request,
     );
 
@@ -89,8 +90,9 @@ export async function DELETE(request: NextRequest) {
       {
         older_than_days: olderThanDays,
         deleted_count: deletedCount,
+        user_type: "admin",
       },
-      { id: "admin_user", email: "admin@example.com" },
+      { id: "admin_user", email: "admin@bbn-academy.com" },
       request,
     );
 
@@ -105,8 +107,8 @@ export async function DELETE(request: NextRequest) {
     await logger.logError(
       "logs_deletion_failed",
       error instanceof Error ? error : "Unknown error",
-      { request_url: request.url },
-      { id: "admin_user", email: "admin@example.com" },
+      { request_url: request.url, user_type: "admin" },
+      { id: "admin_user", email: "admin@bbn-academy.com" },
       request,
     );
 

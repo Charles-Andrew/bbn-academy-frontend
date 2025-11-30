@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Extract user info for logging (you may want to get this from auth session)
-    const currentUser = { id: "admin_user", email: "admin@example.com" }; // Update with actual user extraction
+    const currentUser = { id: "admin_user", email: "admin@bbn-academy.com" }; // Admin user from admin dashboard
 
     const { data: book, error } = await supabase
       .from("books")
