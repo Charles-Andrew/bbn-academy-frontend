@@ -1,61 +1,83 @@
 import type { Engagement, EngagementFilters } from "@/types/engagement";
-import engagementsData from "./data.json";
+import { getEngagements, getEngagementTypes as getDbEngagementTypes } from "@/lib/supabase/engagements";
 
-export const engagements: Engagement[] =
-  engagementsData.engagements as Engagement[];
+// Cache for client-side calls
+let cachedEngagements: Engagement[] | null = null;
+let lastFetch = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-const hasFutureDate = (
-  engagement: Engagement,
-  now: Date,
-): engagement is Engagement & { date: string } =>
-  Boolean(engagement.date && new Date(engagement.date) > now);
+export async function getAllEngagements(type?: string): Promise<Engagement[]> {
+  // For server-side calls, always fetch fresh data
+  if (typeof window === 'undefined') {
+    return await getEngagements(type);
+  }
 
-export const getUpcomingEngagements = () => {
-  const now = new Date();
-  return engagements
-    .filter((engagement): engagement is Engagement & { date: string } =>
-      hasFutureDate(engagement, now),
-    )
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // For client-side calls, use cache
+  const now = Date.now();
+  if (cachedEngagements && (now - lastFetch) < CACHE_DURATION) {
+    return type
+      ? cachedEngagements.filter(engagement => engagement.type === type)
+      : cachedEngagements;
+  }
+
+  const engagements = await getEngagements(type);
+  if (!type) {
+    cachedEngagements = engagements;
+    lastFetch = now;
+  }
+  return engagements;
+}
+
+export const getUpcomingEngagements = async () => {
+  // Since we don't have date information, return all engagements sorted by creation date
+  const engagements = await getAllEngagements();
+  return engagements;
 };
 
-export const getEngagementsByType = (type: string) =>
-  engagements.filter((engagement) => engagement.type === type);
+export const getEngagementsByType = async (type: string) => {
+  return await getAllEngagements(type);
+};
 
-export const getVirtualEngagements = () =>
-  engagements.filter((engagement) => engagement.is_virtual);
+export const getVirtualEngagements = async () => {
+  // We don't have is_virtual field, so return empty array
+  return [];
+};
 
-export const getInPersonEngagements = () =>
-  engagements.filter((engagement) => !engagement.is_virtual);
+export const getInPersonEngagements = async () => {
+  // We don't have is_virtual field, so return all engagements
+  return await getAllEngagements();
+};
 
-export const getEngagementById = (id: string) =>
-  engagements.find((engagement) => engagement.id === id);
+export const getEngagementById = async (id: string) => {
+  const engagements = await getAllEngagements();
+  return engagements.find((engagement) => engagement.id === id) || null;
+};
 
-export const searchEngagements = (query: string) =>
-  engagements.filter(
+export const searchEngagements = async (query: string) => {
+  const engagements = await getAllEngagements();
+  const lowercaseQuery = query.toLowerCase();
+  return engagements.filter(
     (engagement) =>
-      engagement.title.toLowerCase().includes(query.toLowerCase()) ||
-      engagement.description.toLowerCase().includes(query.toLowerCase()),
+      engagement.title.toLowerCase().includes(lowercaseQuery) ||
+      engagement.description.toLowerCase().includes(lowercaseQuery)
   );
+};
 
-export const filterEngagements = (filters: EngagementFilters) => {
+export const filterEngagements = async (filters: EngagementFilters) => {
+  const engagements = await getAllEngagements();
   return engagements.filter((engagement) => {
     if (filters.type && engagement.type !== filters.type) return false;
-    if (filters.upcoming !== undefined) {
-      const now = new Date();
-      const isUpcoming = engagement.date && new Date(engagement.date) > now;
-      if (filters.upcoming !== isUpcoming) return false;
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      if (!engagement.title.toLowerCase().includes(searchLower) &&
+          !engagement.description.toLowerCase().includes(searchLower)) {
+        return false;
+      }
     }
-    if (
-      filters.virtual !== undefined &&
-      engagement.is_virtual !== filters.virtual
-    )
-      return false;
     return true;
   });
 };
 
-export const getEngagementTypes = () => {
-  const types = new Set(engagements.map((engagement) => engagement.type));
-  return Array.from(types) as Engagement["type"][];
+export const getEngagementTypes = async () => {
+  return await getDbEngagementTypes();
 };
