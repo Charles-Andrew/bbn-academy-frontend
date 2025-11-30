@@ -11,34 +11,6 @@ export async function GET(request: NextRequest) {
     const filters = {
       search: searchParams.get("search") || undefined,
       type: (searchParams.get("type") as string) || undefined,
-      status: (searchParams.get("status") as string) || undefined,
-      upcoming:
-        searchParams.get("upcoming") === "true"
-          ? true
-          : searchParams.get("upcoming") === "false"
-            ? false
-            : undefined,
-      virtual:
-        searchParams.get("virtual") === "true"
-          ? true
-          : searchParams.get("virtual") === "false"
-            ? false
-            : undefined,
-      featured:
-        searchParams.get("featured") === "true"
-          ? true
-          : searchParams.get("featured") === "false"
-            ? false
-            : undefined,
-      tags: searchParams.get("tags")?.split(",").filter(Boolean) || undefined,
-      dateFrom: searchParams.get("dateFrom") || undefined,
-      dateTo: searchParams.get("dateTo") || undefined,
-      minPrice: searchParams.get("minPrice")
-        ? Number(searchParams.get("minPrice"))
-        : undefined,
-      maxPrice: searchParams.get("maxPrice")
-        ? Number(searchParams.get("maxPrice"))
-        : undefined,
       sortBy: searchParams.get("sortBy") || "created_at",
       sortOrder: searchParams.get("sortOrder") || "desc",
     };
@@ -60,54 +32,11 @@ export async function GET(request: NextRequest) {
       query = query.eq("type", filters.type);
     }
 
-    if (filters.status) {
-      query = query.eq("status", filters.status);
-    }
-
-    if (filters.upcoming !== undefined) {
-      if (filters.upcoming) {
-        query = query.eq("status", "upcoming");
-      } else {
-        query = query.neq("status", "upcoming");
-      }
-    }
-
-    if (filters.virtual !== undefined) {
-      query = query.eq("is_virtual", filters.virtual);
-    }
-
-    if (filters.featured !== undefined) {
-      query = query.eq("is_featured", filters.featured);
-    }
-
-    if (filters.tags && filters.tags.length > 0) {
-      query = query.contains("tags", filters.tags);
-    }
-
-    if (filters.dateFrom) {
-      query = query.gte("date", filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      query = query.lte("date", filters.dateTo);
-    }
-
-    if (filters.minPrice !== undefined) {
-      query = query.gte("price", filters.minPrice);
-    }
-
-    if (filters.maxPrice !== undefined) {
-      query = query.lte("price", filters.maxPrice);
-    }
-
     // Apply sorting
     const validSortFields = [
       "created_at",
       "updated_at",
-      "date",
       "title",
-      "price",
-      "status",
     ];
     const sortField = validSortFields.includes(filters.sortBy)
       ? filters.sortBy
@@ -167,16 +96,6 @@ export async function POST(request: NextRequest) {
         description: validatedData.description,
         content: validatedData.content,
         images: validatedData.images,
-        date: validatedData.date,
-        duration: validatedData.duration,
-        price: validatedData.price,
-        max_attendees: validatedData.maxAttendees,
-        location: validatedData.location,
-        is_virtual: validatedData.isVirtual,
-        is_featured: validatedData.isFeatured,
-        booking_url: validatedData.bookingUrl,
-        status: validatedData.status,
-        tags: validatedData.tags,
       })
       .select()
       .single();

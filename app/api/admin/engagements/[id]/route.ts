@@ -56,16 +56,6 @@ export async function PUT(
         description: validatedData.description,
         content: validatedData.content,
         images: validatedData.images,
-        date: validatedData.date,
-        duration: validatedData.duration,
-        price: validatedData.price,
-        max_attendees: validatedData.maxAttendees,
-        location: validatedData.location,
-        is_virtual: validatedData.isVirtual,
-        is_featured: validatedData.isFeatured,
-        booking_url: validatedData.bookingUrl,
-        status: validatedData.status,
-        tags: validatedData.tags,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

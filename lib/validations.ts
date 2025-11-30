@@ -373,41 +373,6 @@ export const engagementSchema = z.object({
     .array(z.string().url("Invalid image URL"))
     .max(10, "Cannot have more than 10 images")
     .default([]),
-  date: z.string().datetime("Invalid date format").optional().or(z.literal("")),
-  duration: z
-    .string()
-    .min(1, "Duration is required")
-    .max(50, "Duration cannot exceed 50 characters"),
-  price: z
-    .number()
-    .min(0, "Price cannot be negative")
-    .max(999999, "Price cannot exceed 999,999")
-    .nullable()
-    .optional(),
-  maxAttendees: z
-    .number()
-    .min(1, "Maximum attendees must be at least 1")
-    .max(999999, "Maximum attendees cannot exceed 999,999")
-    .nullable()
-    .optional(),
-  location: z
-    .string()
-    .max(200, "Location cannot exceed 200 characters")
-    .optional(),
-  isVirtual: z.boolean().default(false),
-  isFeatured: z.boolean().default(false),
-  bookingUrl: z
-    .string()
-    .url("Booking URL must be valid")
-    .optional()
-    .or(z.literal("")),
-  status: z
-    .enum(["upcoming", "ongoing", "completed", "cancelled"])
-    .default("upcoming"),
-  tags: z
-    .array(z.string())
-    .max(10, "Cannot have more than 10 tags")
-    .default([]),
 });
 
 // Engagement filters validation schema
@@ -425,17 +390,8 @@ export const engagementFiltersSchema = z.object({
       "event",
     ])
     .optional(),
-  status: z.enum(["upcoming", "ongoing", "completed", "cancelled"]).optional(),
-  upcoming: z.boolean().optional(),
-  virtual: z.boolean().optional(),
-  featured: z.boolean().optional(),
-  tags: z.array(z.string()).optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  minPrice: z.number().min(0).optional(),
-  maxPrice: z.number().min(0).optional(),
   sortBy: z
-    .enum(["created_at", "updated_at", "date", "title", "price", "status"])
+    .enum(["created_at", "updated_at", "title"])
     .default("created_at"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
