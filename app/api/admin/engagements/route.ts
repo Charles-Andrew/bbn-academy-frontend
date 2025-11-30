@@ -80,12 +80,77 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const formData = await request.formData();
 
-    // Validate request body
-    const validatedData = engagementSchema.parse(body);
+    // Parse form data
+    const title = formData.get("title") as string;
+    const slug = formData.get("slug") as string;
+    const type = formData.get("type") as string;
+    const description = formData.get("description") as string;
+    const date = formData.get("date") as string;
+    const featured = formData.get("featured") === "true";
+    const imagesJson = formData.get("images") as string;
+    
+    // Parse existing images
+    let existingImages: string[] = [];
+    if (imagesJson) {
+      try {
+        existingImages = JSON.parse(imagesJson);
+      } catch (e) {
+        console.error("Error parsing images JSON:", e);
+      }
+    }
 
+    // Handle file uploads
+    const uploadedUrls: string[] = [];
+    const files = formData.getAll("files") as File[];
+    
     const supabase = await createClient();
+    
+    for (const file of files) {
+      if (file && file.size > 0) {
+        try {
+          const fileData = Buffer.from(await file.arrayBuffer());
+          const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("engagement-media")
+            .upload(fileName, fileData, {
+              contentType: file.type,
+              upsert: true
+            });
+
+          if (uploadError) {
+            console.error("Error uploading file:", uploadError);
+            continue;
+          }
+
+          const { data: publicUrlData } = supabase.storage
+            .from("engagement-media")
+            .getPublicUrl(fileName);
+
+          uploadedUrls.push(publicUrlData.publicUrl);
+        } catch (error) {
+          console.error("Error processing file:", error);
+        }
+      }
+    }
+
+    // Combine existing and new images
+    const allImages = [...existingImages, ...uploadedUrls];
+
+    // Validate engagement data (excluding files for now)
+    const engagementData = {
+      title,
+      slug: slug || null,
+      type,
+      description,
+      date: date && date.trim() !== "" ? date : null,
+      featured,
+      images: allImages,
+    };
+
+    const validatedData = engagementSchema.parse(engagementData);
 
     const { data: engagement, error } = await supabase
       .from("engagements")
@@ -94,6 +159,8 @@ export async function POST(request: NextRequest) {
         slug: validatedData.slug,
         type: validatedData.type,
         description: validatedData.description,
+        date: validatedData.date,
+        featured: validatedData.featured,
         images: validatedData.images,
       })
       .select()
@@ -107,7 +174,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ engagement }, { status: 201 });
+    return NextResponse.json({ 
+      engagement,
+      uploadedFiles: uploadedUrls.length 
+    }, { status: 201 });
   } catch (error) {
     console.error("Error in engagements POST:", error);
 

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
-      .from("engagement-images")
+      .from("engagement-media")
       .upload(filePath, file, {
         contentType: file.type,
         cacheControl: "3600", // Cache for 1 hour
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from("engagement-images").getPublicUrl(filePath);
+    } = supabase.storage.from("engagement-media").getPublicUrl(filePath);
 
     return NextResponse.json({
       url: publicUrl,
@@ -103,7 +103,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete file from Supabase Storage
     const { error } = await supabase.storage
-      .from("engagement-images")
+      .from("engagement-media")
       .remove([path]);
 
     if (error) {
