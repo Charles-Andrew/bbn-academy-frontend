@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  Calendar,
-  Plus,
-  Search,
-} from "lucide-react";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { Calendar, Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -23,6 +19,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
   return debouncedValue;
 }
+
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -34,10 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type {
-  Engagement,
-  EngagementType,
-} from "@/types/engagement";
+import type { Engagement, EngagementType } from "@/types/engagement";
 import { EngagementCard } from "./EngagementCard";
 import { EngagementForm } from "./EngagementForm";
 
@@ -69,7 +63,9 @@ export function EngagementList({ className }: EngagementListProps) {
   const [typeFilter, setTypeFilter] = useState<EngagementType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingEngagement, setEditingEngagement] = useState<Engagement | null>(null);
+  const [editingEngagement, setEditingEngagement] = useState<Engagement | null>(
+    null,
+  );
 
   // Debounced search value
   const debouncedSearch = useDebounce(search, 300);
@@ -80,15 +76,22 @@ export function EngagementList({ className }: EngagementListProps) {
 
     // Apply search filter
     if (debouncedSearch) {
-      filtered = filtered.filter(engagement =>
-        engagement.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        engagement.description?.toLowerCase().includes(debouncedSearch.toLowerCase())
+      filtered = filtered.filter(
+        (engagement) =>
+          engagement.title
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()) ||
+          engagement.description
+            ?.toLowerCase()
+            .includes(debouncedSearch.toLowerCase()),
       );
     }
 
     // Apply type filter
     if (typeFilter && typeFilter !== "all") {
-      filtered = filtered.filter(engagement => engagement.type === typeFilter);
+      filtered = filtered.filter(
+        (engagement) => engagement.type === typeFilter,
+      );
     }
 
     // Apply sort
@@ -109,7 +112,7 @@ export function EngagementList({ className }: EngagementListProps) {
   const fetchEngagements = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/engagements?limit=1000'); // Get all engagements
+      const response = await fetch("/api/admin/engagements?limit=1000"); // Get all engagements
       if (response.ok) {
         const data = await response.json();
         setAllEngagements(data.engagements);
@@ -161,10 +164,8 @@ export function EngagementList({ className }: EngagementListProps) {
     setEditingEngagement(null);
   };
 
-  
-
   return (
-    <div className={`space-y-6 px-2 ${className || ''}`}>
+    <div className={`space-y-6 px-2 ${className || ""}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
@@ -190,10 +191,15 @@ export function EngagementList({ className }: EngagementListProps) {
             className="pl-10"
           />
         </div>
-        
+
         {/* Type Filter */}
         <div suppressHydrationWarning>
-          <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as EngagementType | "all")}>
+          <Select
+            value={typeFilter}
+            onValueChange={(value) =>
+              setTypeFilter(value as EngagementType | "all")
+            }
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All types" />
             </SelectTrigger>
@@ -210,7 +216,10 @@ export function EngagementList({ className }: EngagementListProps) {
 
         {/* Sort */}
         <div suppressHydrationWarning>
-          <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
+          <Select
+            value={sortOrder}
+            onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
+          >
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -229,7 +238,7 @@ export function EngagementList({ className }: EngagementListProps) {
       <div className="text-sm text-muted-foreground">
         {filteredEngagements.length === 0
           ? "No engagements found"
-          : `Showing ${filteredEngagements.length} engagement${filteredEngagements.length !== 1 ? 's' : ''}`}
+          : `Showing ${filteredEngagements.length} engagement${filteredEngagements.length !== 1 ? "s" : ""}`}
       </div>
 
       {/* Engagement Grid/List */}
@@ -271,19 +280,17 @@ export function EngagementList({ className }: EngagementListProps) {
           </CardContent>
         </Card>
       ) : (
-        <>
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {engagements.map((engagement) => (
-              <EngagementCard
-                key={engagement.id}
-                engagement={engagement}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-              />
-            ))}
-          </div>
-        </>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {engagements.map((engagement) => (
+            <EngagementCard
+              key={engagement.id}
+              engagement={engagement}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
+            />
+          ))}
+        </div>
       )}
 
       {/* Engagement Form Modal */}

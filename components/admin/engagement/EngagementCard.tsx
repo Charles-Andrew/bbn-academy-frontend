@@ -4,18 +4,13 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  DollarSign,
   Edit,
-  ExternalLink,
   Globe,
   Image as ImageIcon,
-  MapPin,
   MoreHorizontal,
   Star,
   StarOff,
   Trash2,
-  Users,
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -62,13 +57,6 @@ const typeConfig = {
   event: { label: "Event", color: "bg-yellow-100 text-yellow-800" },
 };
 
-const statusConfig = {
-  upcoming: { label: "Upcoming", color: "bg-blue-100 text-blue-800" },
-  ongoing: { label: "Ongoing", color: "bg-green-100 text-green-800" },
-  completed: { label: "Completed", color: "bg-gray-100 text-gray-800" },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800" },
-};
-
 export function EngagementCard({
   engagement,
   onEdit,
@@ -83,12 +71,10 @@ export function EngagementCard({
   const hasImages = engagement.images && engagement.images.length > 0;
   const currentImage = hasImages ? engagement.images[currentImageIndex] : null;
 
-  const typeInfo = typeConfig[engagement.type] || {
+  const typeInfo = (typeConfig[engagement.type as keyof typeof typeConfig] as
+    | { label: string; color: string }
+    | undefined) || {
     label: engagement.type,
-    color: "bg-gray-100 text-gray-800",
-  };
-  const statusInfo = statusConfig[engagement.status] || {
-    label: engagement.status,
     color: "bg-gray-100 text-gray-800",
   };
 
@@ -123,7 +109,7 @@ export function EngagementCard({
     try {
       const updatedEngagement = {
         ...engagement,
-        is_featured: !engagement.is_featured,
+        featured: !engagement.featured,
       };
 
       const response = await fetch(`/api/admin/engagements/${engagement.id}`, {
@@ -132,16 +118,14 @@ export function EngagementCard({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          isFeatured: !engagement.is_featured,
+          featured: !engagement.featured,
         }),
       });
 
       if (response.ok) {
         onUpdate(updatedEngagement);
         toast.success(
-          engagement.is_featured
-            ? "Removed from featured"
-            : "Added to featured",
+          engagement.featured ? "Removed from featured" : "Added to featured",
         );
       } else {
         toast.error("Failed to update featured status");
@@ -219,7 +203,7 @@ export function EngagementCard({
             )}
 
             {/* Featured Badge */}
-            {engagement.is_featured && (
+            {engagement.featured && (
               <div className="absolute top-2 left-2">
                 <Badge className="bg-yellow-400 text-yellow-900">
                   <Star className="h-3 w-3 mr-1" />
@@ -255,7 +239,7 @@ export function EngagementCard({
                 onClick={handleToggleFeatured}
                 disabled={isTogglingFeatured}
               >
-                {engagement.is_featured ? (
+                {engagement.featured ? (
                   <>
                     <StarOff className="h-4 w-4 mr-2" />
                     Remove from Featured
@@ -267,19 +251,6 @@ export function EngagementCard({
                   </>
                 )}
               </DropdownMenuItem>
-              {engagement.booking_url && (
-                <DropdownMenuItem asChild>
-                  <a
-                    href={engagement.booking_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Booking Page
-                  </a>
-                </DropdownMenuItem>
-              )}
               <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -333,9 +304,6 @@ export function EngagementCard({
             <h3 className="font-semibold text-lg line-clamp-2 leading-tight">
               {engagement.title}
             </h3>
-            <Badge className={statusInfo.color} variant="secondary">
-              {statusInfo.label}
-            </Badge>
           </div>
 
           {/* Type and Badges */}
@@ -343,7 +311,7 @@ export function EngagementCard({
             <Badge className={typeInfo.color} variant="secondary">
               {typeInfo.label}
             </Badge>
-            {engagement.is_virtual && (
+            {false && (
               <Badge variant="outline" className="flex items-center gap-1">
                 <Globe className="h-3 w-3" />
                 Virtual
@@ -367,55 +335,7 @@ export function EngagementCard({
               <span>{formatDate(engagement.date)}</span>
             </div>
           )}
-
-          {engagement.duration && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>{engagement.duration}</span>
-            </div>
-          )}
-
-          {engagement.location && !engagement.is_virtual && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span className="line-clamp-1">{engagement.location}</span>
-            </div>
-          )}
-
-          {engagement.max_attendees && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>Max {engagement.max_attendees} attendees</span>
-            </div>
-          )}
-
-          {engagement.price !== null && engagement.price !== undefined && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
-              <span>
-                {engagement.price === 0
-                  ? "Free"
-                  : `$${engagement.price.toFixed(2)}`}
-              </span>
-            </div>
-          )}
         </div>
-
-        {/* Tags */}
-        {engagement.tags && engagement.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {engagement.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-            {engagement.tags.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{engagement.tags.length - 3} more
-              </Badge>
-            )}
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
@@ -428,18 +348,6 @@ export function EngagementCard({
             <Edit className="h-4 w-4 mr-2" />
             Edit
           </Button>
-          {engagement.booking_url && (
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={engagement.booking_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View
-              </a>
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>

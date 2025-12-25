@@ -1,19 +1,11 @@
 "use client";
 
-import {
-  AlertCircle,
-  Image as ImageIcon,
-  Loader2,
-  Plus,
-  Upload,
-  X,
-} from "lucide-react";
+import { AlertCircle, Image as ImageIcon, Upload, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface ImageManagerProps {
@@ -47,13 +39,18 @@ export function ImageManager({
         }
 
         // Check file type
-        if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+        if (
+          !file.type.startsWith("image/") &&
+          !file.type.startsWith("video/")
+        ) {
           throw new Error("File must be an image or video");
         }
 
         const newFiles = [...files, file];
         onFilesChange(newFiles);
-        toast.success(`${file.type.startsWith("video/") ? "Video" : "Image"} added successfully`);
+        toast.success(
+          `${file.type.startsWith("video/") ? "Video" : "Image"} added successfully`,
+        );
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Failed to add file";
@@ -85,9 +82,9 @@ export function ImageManager({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 
+    accept: {
       "image/*": [],
-      "video/*": []
+      "video/*": [],
     },
     maxSize: 10 * 1024 * 1024, // 10MB
     multiple: true,
@@ -140,7 +137,8 @@ export function ImageManager({
     <div className={`space-y-4 ${className}`}>
       <Label>Engagement Images</Label>
       <p className="text-sm text-muted-foreground">
-        Upload up to {maxImages} images to showcase your engagement. Files will be uploaded when you submit the form.
+        Upload up to {maxImages} images to showcase your engagement. Files will
+        be uploaded when you submit the form.
       </p>
 
       {/* New Files (not yet uploaded) */}
@@ -155,7 +153,10 @@ export function ImageManager({
               const isVideo = file.type.startsWith("video/");
 
               return (
-                <Card key={`new-file-${index}`} className="relative group border-blue-200 dark:border-blue-800">
+                <Card
+                  key={`new-file-${file.name}-${file.size}-${index}`}
+                  className="relative group border-blue-200 dark:border-blue-800"
+                >
                   <CardContent className="p-2">
                     <div className="relative aspect-square">
                       {isVideo ? (
@@ -163,8 +164,11 @@ export function ImageManager({
                           src={previewUrl}
                           controls
                           className="w-full h-full object-cover rounded-md"
-                        />
+                        >
+                          <track kind="captions" />
+                        </video>
                       ) : (
+                        // biome-ignore lint/performance/noImgElement: File preview URLs are not suitable for Next.js Image optimization
                         <img
                           src={previewUrl}
                           alt={`New file ${index + 1}`}
@@ -224,62 +228,71 @@ export function ImageManager({
             Existing Images ({images.length})
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((image, index) => (
-              <Card key={`existing-img-${index}`} className="relative group">
-                <CardContent className="p-2">
-                  <div className="relative aspect-square">
-                    {image.match(/\.(mp4|webm|ogg|mov)$/i) ? (
-                      <video
-                        src={image}
-                        controls
-                        className="w-full h-full object-cover rounded-md"
-                      />
-                    ) : (
-                      <img
-                        src={image}
-                        alt={`Engagement media ${index + 1}`}
-                        className="w-full h-full object-cover rounded-md"
-                        loading="lazy"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveImage(files.length + index)}
-                        className="mr-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      {images.length > 1 && (
-                        <div className="flex gap-1">
-                          {index > 0 && (
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => moveImage(index, index - 1)}
-                            >
-                              ←
-                            </Button>
-                          )}
-                          {index < images.length - 1 && (
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => moveImage(index, index + 1)}
-                            >
-                              →
-                            </Button>
-                          )}
-                        </div>
+            {images.map((image, index) => {
+              // Use image URL as key, fallback to index if image is empty
+              const cardKey = image || `existing-img-${index}`;
+              return (
+                <Card key={cardKey} className="relative group">
+                  <CardContent className="p-2">
+                    <div className="relative aspect-square">
+                      {image.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+                        <video
+                          src={image}
+                          controls
+                          className="w-full h-full object-cover rounded-md"
+                        >
+                          <track kind="captions" />
+                        </video>
+                      ) : (
+                        // biome-ignore lint/performance/noImgElement: External image URLs may not be suitable for Next.js Image optimization
+                        <img
+                          src={image}
+                          alt={`Engagement media ${index + 1}`}
+                          className="w-full h-full object-cover rounded-md"
+                          loading="lazy"
+                        />
                       )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            handleRemoveImage(files.length + index)
+                          }
+                          className="mr-2"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        {images.length > 1 && (
+                          <div className="flex gap-1">
+                            {index > 0 && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => moveImage(index, index - 1)}
+                              >
+                                ←
+                              </Button>
+                            )}
+                            {index < images.length - 1 && (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => moveImage(index, index + 1)}
+                              >
+                                →
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}
@@ -311,7 +324,8 @@ export function ImageManager({
                     Drag and drop images here, or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    PNG, JPG, GIF, WebP, MP4, WebM up to 10MB each. Files will be uploaded when you submit the form.
+                    PNG, JPG, GIF, WebP, MP4, WebM up to 10MB each. Files will
+                    be uploaded when you submit the form.
                   </p>
                 </div>
                 <Button type="button" variant="outline">
