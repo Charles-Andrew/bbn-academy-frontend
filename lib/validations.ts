@@ -402,9 +402,7 @@ export const engagementFiltersSchema = z.object({
       "event",
     ])
     .optional(),
-  sortBy: z
-    .enum(["created_at", "updated_at", "title"])
-    .default("created_at"),
+  sortBy: z.enum(["created_at", "updated_at", "title"]).default("created_at"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 

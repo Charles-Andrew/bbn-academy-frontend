@@ -13,8 +13,6 @@ export interface Engagement {
 
 export type EngagementType = string;
 
-
-
 export interface EngagementFilters {
   type?: EngagementType;
   search?: string;

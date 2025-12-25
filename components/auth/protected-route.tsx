@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSupabaseAuth } from "@/hooks/use-supabase-auth";
 
 interface ProtectedRouteProps {
@@ -37,6 +37,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           </h2>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
           >

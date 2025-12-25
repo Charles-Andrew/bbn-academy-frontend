@@ -1,8 +1,8 @@
 "use client";
 
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
@@ -20,7 +20,7 @@ export function useSupabaseAuth() {
   });
 
   useEffect(() => {
-    let supabase;
+    let supabase: SupabaseClient | undefined;
 
     try {
       supabase = createClient();
