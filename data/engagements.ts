@@ -1,5 +1,8 @@
+import {
+  getEngagementTypes as getDbEngagementTypes,
+  getEngagements,
+} from "@/lib/supabase/engagements";
 import type { Engagement, EngagementFilters } from "@/types/engagement";
-import { getEngagements, getEngagementTypes as getDbEngagementTypes } from "@/lib/supabase/engagements";
 
 // Cache for client-side calls
 let cachedEngagements: Engagement[] | null = null;
@@ -8,15 +11,15 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function getAllEngagements(type?: string): Promise<Engagement[]> {
   // For server-side calls, always fetch fresh data
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return await getEngagements(type);
   }
 
   // For client-side calls, use cache
   const now = Date.now();
-  if (cachedEngagements && (now - lastFetch) < CACHE_DURATION) {
+  if (cachedEngagements && now - lastFetch < CACHE_DURATION) {
     return type
-      ? cachedEngagements.filter(engagement => engagement.type === type)
+      ? cachedEngagements.filter((engagement) => engagement.type === type)
       : cachedEngagements;
   }
 
@@ -59,7 +62,7 @@ export const searchEngagements = async (query: string) => {
   return engagements.filter(
     (engagement) =>
       engagement.title.toLowerCase().includes(lowercaseQuery) ||
-      engagement.description.toLowerCase().includes(lowercaseQuery)
+      engagement.description.toLowerCase().includes(lowercaseQuery),
   );
 };
 
@@ -69,8 +72,10 @@ export const filterEngagements = async (filters: EngagementFilters) => {
     if (filters.type && engagement.type !== filters.type) return false;
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      if (!engagement.title.toLowerCase().includes(searchLower) &&
-          !engagement.description.toLowerCase().includes(searchLower)) {
+      if (
+        !engagement.title.toLowerCase().includes(searchLower) &&
+        !engagement.description.toLowerCase().includes(searchLower)
+      ) {
         return false;
       }
     }
