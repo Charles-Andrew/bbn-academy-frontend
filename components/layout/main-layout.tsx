@@ -13,7 +13,7 @@ export function MainLayout({
   showFooter = true,
 }: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" suppressHydrationWarning>
       {showHeader && <Header />}
       <main className="flex-1">{children}</main>
       {showFooter && <Footer />}

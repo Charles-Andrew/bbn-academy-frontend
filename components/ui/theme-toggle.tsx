@@ -2,17 +2,11 @@
 
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const cycleTheme = () => {
     const themeOrder = ["system", "dark", "light"];
@@ -23,7 +17,7 @@ export function ThemeToggle() {
   };
 
   const getIcon = () => {
-    const currentTheme = mounted ? theme || "system" : "system";
+    const currentTheme = theme || "system";
 
     switch (currentTheme) {
       case "light":
@@ -36,7 +30,7 @@ export function ThemeToggle() {
   };
 
   const getLabel = () => {
-    const currentTheme = mounted ? theme || "system" : "system";
+    const currentTheme = theme || "system";
 
     switch (currentTheme) {
       case "light":
@@ -54,7 +48,6 @@ export function ThemeToggle() {
       size="icon"
       onClick={cycleTheme}
       title={getLabel()}
-      suppressHydrationWarning
     >
       {getIcon()}
       <span className="sr-only">{getLabel()}</span>

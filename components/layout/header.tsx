@@ -2,11 +2,20 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+
+// Dynamically import ThemeToggle with SSR disabled to prevent hydration issues
+const ThemeToggle = dynamic(
+  () =>
+    import("@/components/ui/theme-toggle").then((mod) => ({
+      default: mod.ThemeToggle,
+    })),
+  { ssr: false },
+);
 
 const navigation = [
   { name: "About", href: "/about" },
