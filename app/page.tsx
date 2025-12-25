@@ -42,7 +42,7 @@ export async function generateStaticParams() {
 export default async function Home() {
   const featuredProducts = getFeaturedProducts();
   const featuredPosts = await getFeaturedPosts();
-  const upcomingEngagements = getUpcomingEngagements().slice(0, 3);
+  const upcomingEngagements = (await getUpcomingEngagements()).slice(0, 3);
 
   return (
     <MainLayout>

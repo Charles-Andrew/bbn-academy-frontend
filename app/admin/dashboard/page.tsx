@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ProtectedRoute } from "@/components/auth/protected-route";
 import AdminDashboardClient from "@/components/admin/admin-dashboard-client";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard | BBN Academy",
