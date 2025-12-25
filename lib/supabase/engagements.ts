@@ -7,6 +7,8 @@ export type Engagement = {
   description: string;
   slug: string | null;
   images: string[];
+  date: string | null;
+  featured: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -53,15 +55,13 @@ export async function getEngagementBySlug(slug: string) {
 export async function getEngagementTypes() {
   const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from("engagements")
-    .select("type");
+  const { data, error } = await supabase.from("engagements").select("type");
 
   if (error) {
     console.error("Error fetching engagement types:", error);
     return [];
   }
 
-  const types = [...new Set(data?.map(item => item.type) || [])];
+  const types = [...new Set(data?.map((item) => item.type) || [])];
   return types;
 }

@@ -53,7 +53,7 @@ if (typeof window !== "undefined") {
           }
         }
       });
-    } catch (error) {
+    } catch (_error) {
       // Silently ignore cleanup errors
     }
   });

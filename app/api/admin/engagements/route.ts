@@ -33,11 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply sorting
-    const validSortFields = [
-      "created_at",
-      "updated_at",
-      "title",
-    ];
+    const validSortFields = ["created_at", "updated_at", "title"];
     const sortField = validSortFields.includes(filters.sortBy)
       ? filters.sortBy
       : "created_at";
@@ -90,7 +86,7 @@ export async function POST(request: NextRequest) {
     const date = formData.get("date") as string;
     const featured = formData.get("featured") === "true";
     const imagesJson = formData.get("images") as string;
-    
+
     // Parse existing images
     let existingImages: string[] = [];
     if (imagesJson) {
@@ -104,20 +100,20 @@ export async function POST(request: NextRequest) {
     // Handle file uploads
     const uploadedUrls: string[] = [];
     const files = formData.getAll("files") as File[];
-    
+
     const supabase = await createClient();
-    
+
     for (const file of files) {
       if (file && file.size > 0) {
         try {
           const fileData = Buffer.from(await file.arrayBuffer());
           const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
+
+          const { error: uploadError } = await supabase.storage
             .from("engagement-media")
             .upload(fileName, fileData, {
               contentType: file.type,
-              upsert: true
+              upsert: true,
             });
 
           if (uploadError) {
@@ -174,10 +170,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ 
-      engagement,
-      uploadedFiles: uploadedUrls.length 
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        engagement,
+        uploadedFiles: uploadedUrls.length,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error in engagements POST:", error);
 

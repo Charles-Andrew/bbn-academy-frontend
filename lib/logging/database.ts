@@ -7,10 +7,10 @@ export class LogDatabase {
       const supabase = await createClient();
 
       // Handle user_id validation - only set if it's a valid UUID format
-      let userId = logData.context?.user_id;
+      let userId: string | undefined = logData.context?.user_id;
       if (userId && (userId === "admin_user" || userId === "anonymous")) {
-        // Convert non-UUID user identifiers to null since they're not real users
-        userId = null;
+        // Convert non-UUID user identifiers to undefined since they're not real users
+        userId = undefined;
       }
 
       const { data, error } = await supabase
